@@ -1,0 +1,1436 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VoIPSwitch</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <section class="login-screen" id="loginScreen">
+    <div class="login-shell">
+      <div class="login-brand">
+        <div class="brand-mark brand-mark--login">VS</div>
+        <div>
+          <div class="brand-name">VoIPSwitch</div>
+          <div class="brand-meta" data-i18n="login.meta"></div>
+        </div>
+      </div>
+      <label class="login-language-picker" for="languageSelect">
+        <span data-i18n="language.label"></span>
+        <select id="languageSelect">
+          <option value="zh-CN" data-i18n="language.zhCN"></option>
+          <option value="en-US" data-i18n="language.enUS"></option>
+        </select>
+      </label>
+      <div class="login-console" aria-hidden="true">
+        <span>SIP</span>
+        <i></i>
+        <span>CORE</span>
+        <i></i>
+        <span>MEDIA</span>
+      </div>
+      <form class="login-form" id="loginForm">
+        <div>
+          <h1 data-i18n="login.title"></h1>
+          <p data-i18n="login.subtitle"></p>
+        </div>
+        <label class="field">
+          <span data-i18n="login.username"></span>
+          <input id="loginUsernameInput" type="text" autocomplete="username" required autofocus>
+        </label>
+        <label class="field">
+          <span data-i18n="login.password"></span>
+          <input id="loginPasswordInput" type="password" autocomplete="current-password" required>
+        </label>
+        <button class="button button--primary login-submit" id="loginSubmitButton" type="submit">
+          <span data-i18n="login.submit"></span>
+        </button>
+        <div class="form-message login-message" id="loginMessage" aria-live="polite"></div>
+      </form>
+    </div>
+  </section>
+
+  <div class="app-shell" id="appShell" hidden>
+    <aside class="sidebar">
+      <div class="sidebar__brand">
+        <div class="brand-mark">VS</div>
+        <div>
+          <div class="brand-name">VoIPSwitch</div>
+          <div class="brand-meta" data-i18n="brand.meta"></div>
+        </div>
+      </div>
+
+      <nav class="sidebar__nav" id="globalNavigation" data-i18n-aria-label="nav.systemAriaLabel">
+        <button class="nav-item active" id="navStatusButton" type="button">
+          <span class="nav-item__icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 13 4-4 3 3 5-7"/></svg>
+          </span>
+          <span data-i18n="nav.status"></span>
+        </button>
+        <button class="nav-item" id="navDomainsButton" type="button">
+          <span class="nav-item__icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/></svg>
+          </span>
+          <span data-i18n="nav.domains"></span>
+        </button>
+        <button class="nav-item" id="navUsersButton" type="button">
+          <span class="nav-item__icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 2-6 6-6s6 2 6 6"/><path d="M16 5a3 3 0 0 1 0 6"/><path d="M17 14c2.7.5 4 2.5 4 6"/></svg>
+          </span>
+          <span data-i18n="nav.users"></span>
+        </button>
+        <button class="nav-item" id="navSystemButton" type="button">
+          <span class="nav-item__icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg>
+          </span>
+          <span data-i18n="nav.system"></span>
+        </button>
+        <button class="nav-item" id="navAiGatewayButton" type="button">
+          <span class="nav-item__icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5M8 17h8"/></svg>
+          </span>
+          <span data-i18n="nav.aiGateway"></span>
+        </button>
+      </nav>
+
+      <section class="domain-navigation" id="domainNavigation" hidden>
+        <div class="domain-context">
+          <span data-i18n="domainNav.current"></span>
+          <strong id="domainContextName">-</strong>
+          <select id="domainContextSelect" data-i18n-aria-label="domainNav.selectorAriaLabel"></select>
+        </div>
+        <nav class="sidebar__nav" data-i18n-aria-label="nav.domainAriaLabel">
+          <button class="nav-item" id="navDomainOverviewButton" type="button">
+            <span class="nav-item__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg></span>
+            <span data-i18n="domainNav.overview"></span>
+          </button>
+          <button class="nav-item" id="navCallsButton" type="button">
+            <span class="nav-item__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h3l2-6 4 12 2-6h5"/><path d="M4 4v16"/><path d="M20 4v16"/></svg></span>
+            <span data-i18n="nav.calls"></span>
+          </button>
+          <button class="nav-item" id="navCdrButton" type="button">
+            <span class="nav-item__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M14 3v4h4"/><path d="M9 11h6"/><path d="M9 15h6"/></svg></span>
+            <span data-i18n="nav.cdr"></span>
+          </button>
+          <button class="nav-item" id="navRecordingButton" type="button">
+            <span class="nav-item__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <span data-i18n="nav.recording"></span>
+          </button>
+          <button class="nav-item" id="navAiButton" type="button">
+            <span class="nav-item__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8v4H8z"/><path d="M5 9h14v10H5z"/><path d="M9 13h.01M15 13h.01"/><path d="M9 17h6"/></svg></span>
+            <span data-i18n="nav.ai"></span>
+          </button>
+          <button class="nav-item" id="navDomainExtensionsButton" type="button">
+            <span class="nav-item__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 9h8"/><path d="M8 13h5"/></svg></span>
+            <span data-i18n="tabs.extensions"></span>
+          </button>
+          <button class="nav-item" id="navDomainTrunksButton" type="button">
+            <span class="nav-item__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4v5H5z"/><path d="M15 15h4v5h-4z"/><path d="M9 6h4a4 4 0 0 1 4 4v5"/></svg></span>
+            <span data-i18n="tabs.trunks"></span>
+          </button>
+          <button class="nav-item" id="navDomainRoutesButton" type="button">
+            <span class="nav-item__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h5v5H5z"/><path d="M14 14h5v5h-5z"/><path d="M10 7h3a4 4 0 0 1 4 4v3"/></svg></span>
+            <span data-i18n="tabs.routes"></span>
+          </button>
+        </nav>
+        <button class="nav-context-exit" id="exitDomainButton" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/><path d="M9 12h10"/></svg>
+          <span data-i18n="domainNav.back"></span>
+        </button>
+      </section>
+
+      <section class="sidebar__footer">
+        <div class="sidebar__status" id="sidebarSystemStatus">
+        <div class="sidebar__status-row">
+          <span data-i18n="sidebar.core"></span>
+          <span class="status-pill" id="sidebarCoreState"></span>
+        </div>
+        <div class="sidebar__status-row">
+          <span data-i18n="sidebar.version"></span>
+          <span class="sidebar__status-value" id="sidebarConfigVersion">-</span>
+        </div>
+        <div class="sidebar__status-row">
+          <span data-i18n="sidebar.adapters"></span>
+          <span class="sidebar__status-value" id="sidebarAdapterCount">0</span>
+        </div>
+        </div>
+        <div class="user-menu">
+          <div class="user-avatar" id="currentUserAvatar">A</div>
+          <div class="user-menu__identity">
+            <strong id="currentUsername">-</strong>
+            <span id="currentUserRole">-</span>
+          </div>
+          <button class="icon-button" id="logoutButton" type="button" data-i18n-title="login.logout" data-i18n-aria-label="login.logout">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M14 4h6v16h-6"/></svg>
+          </button>
+        </div>
+      </section>
+    </aside>
+
+    <main class="workspace">
+      <header class="workspace__header">
+        <div>
+          <div class="workspace__eyebrow" id="pageEyebrow"></div>
+          <h1 class="workspace__title" id="pageTitle"></h1>
+          <p class="workspace__subtitle" id="pageSubtitle"></p>
+        </div>
+        <div class="workspace__actions">
+          <label class="workspace-language-picker" for="languageSelectApp">
+            <span data-i18n="language.label"></span>
+            <select id="languageSelectApp">
+              <option value="zh-CN" data-i18n="language.zhCN"></option>
+              <option value="en-US" data-i18n="language.enUS"></option>
+            </select>
+          </label>
+          <button class="button button--ghost" id="backToDomainsButton" type="button" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/><path d="M9 12h10"/></svg>
+            <span data-i18n="actions.backToDomains"></span>
+          </button>
+          <button class="button button--ghost" id="refreshButton" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/><path d="M3 12A9 9 0 0 1 18.5 5.8L21 8"/><path d="M21 3v5h-5"/></svg>
+            <span data-i18n="actions.refresh"></span>
+          </button>
+        </div>
+      </header>
+
+      <section class="view view--active" id="statusView">
+        <div class="stats-grid">
+          <article class="metric-card">
+            <div class="metric-card__label" data-i18n="metrics.domains"></div>
+            <div class="metric-card__value" id="metricDomainCount">0</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-card__label" data-i18n="metrics.extensions"></div>
+            <div class="metric-card__value" id="metricExtensionCount">0</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-card__label" data-i18n="metrics.registered"></div>
+            <div class="metric-card__value" id="metricRegisteredCount">0</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-card__label" data-i18n="metrics.adapters"></div>
+            <div class="metric-card__value" id="metricAdapterCount">0</div>
+          </article>
+        </div>
+
+        <div class="two-column">
+          <section class="panel">
+            <div class="panel__header">
+              <div>
+                <h2 class="panel__title" data-i18n="statusPanel.title"></h2>
+                <p class="panel__hint" data-i18n="statusPanel.hint"></p>
+              </div>
+            </div>
+            <div class="key-value-list">
+              <div class="key-value-row">
+                <span data-i18n="statusPanel.service"></span>
+                <strong id="statusService">-</strong>
+              </div>
+              <div class="key-value-row">
+                <span data-i18n="statusPanel.instance"></span>
+                <strong id="statusInstance">-</strong>
+              </div>
+              <div class="key-value-row">
+                <span data-i18n="statusPanel.version"></span>
+                <strong id="statusVersion">-</strong>
+              </div>
+              <div class="key-value-row">
+                <span data-i18n="statusPanel.resources"></span>
+                <strong id="statusResources">-</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel__header">
+              <div>
+                <h2 class="panel__title" data-i18n="statusPanel.quickDomains"></h2>
+                <p class="panel__hint" data-i18n="statusPanel.quickDomainsHint"></p>
+              </div>
+            </div>
+            <div class="domain-quick-list" id="statusDomainQuickList"></div>
+          </section>
+        </div>
+
+        <section class="telemetry-section" aria-labelledby="telemetryTitle">
+          <div class="telemetry-section__header">
+            <div>
+              <h2 class="panel__title" id="telemetryTitle" data-i18n="telemetry.title"></h2>
+              <p class="panel__hint" data-i18n="telemetry.hint"></p>
+            </div>
+            <span class="telemetry-section__time" id="telemetryUpdatedAt">-</span>
+          </div>
+          <div class="telemetry-grid">
+            <article class="trend-panel trend-panel--cpu">
+              <div class="trend-panel__header">
+                <span data-i18n="telemetry.cpu"></span>
+                <strong id="cpuCurrentValue">-</strong>
+              </div>
+              <svg class="trend-chart" viewBox="0 0 320 112" preserveAspectRatio="none" role="img" aria-label="CPU trend">
+                <path class="trend-chart__grid" d="M0 28H320M0 56H320M0 84H320"/>
+                <polyline class="trend-chart__line" id="cpuTrendLine" points=""></polyline>
+              </svg>
+            </article>
+            <article class="trend-panel trend-panel--memory">
+              <div class="trend-panel__header">
+                <span data-i18n="telemetry.memory"></span>
+                <strong id="memoryCurrentValue">-</strong>
+              </div>
+              <svg class="trend-chart" viewBox="0 0 320 112" preserveAspectRatio="none" role="img" aria-label="Memory trend">
+                <path class="trend-chart__grid" d="M0 28H320M0 56H320M0 84H320"/>
+                <polyline class="trend-chart__line" id="memoryTrendLine" points=""></polyline>
+              </svg>
+            </article>
+            <article class="trend-panel trend-panel--calls">
+              <div class="trend-panel__header">
+                <span data-i18n="telemetry.calls"></span>
+                <strong id="callsCurrentValue">0</strong>
+              </div>
+              <svg class="trend-chart" viewBox="0 0 320 112" preserveAspectRatio="none" role="img" aria-label="Concurrent calls trend">
+                <path class="trend-chart__grid" d="M0 28H320M0 56H320M0 84H320"/>
+                <polyline class="trend-chart__line" id="callsTrendLine" points=""></polyline>
+              </svg>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <section class="view" id="domainOverviewView">
+        <div class="domain-overview">
+          <section class="domain-overview__identity">
+            <div>
+              <span class="utility-label" data-i18n="domainOverview.realm"></span>
+              <strong id="domainOverviewRealm">-</strong>
+            </div>
+            <div>
+              <span class="utility-label" data-i18n="domainOverview.remark"></span>
+              <strong id="domainOverviewRemark">-</strong>
+            </div>
+            <span class="status-pill" id="domainOverviewState">-</span>
+          </section>
+          <div class="stats-grid stats-grid--compact domain-overview__stats">
+            <article class="metric-card metric-card--compact">
+              <div class="metric-card__label" data-i18n="metrics.extensions"></div>
+              <div class="metric-card__value" id="domainOverviewExtensionCount">0</div>
+            </article>
+            <article class="metric-card metric-card--compact">
+              <div class="metric-card__label" data-i18n="metrics.registered"></div>
+              <div class="metric-card__value" id="domainOverviewRegisteredCount">0</div>
+            </article>
+            <article class="metric-card metric-card--compact">
+              <div class="metric-card__label" data-i18n="metrics.trunks"></div>
+              <div class="metric-card__value" id="domainOverviewTrunkCount">0</div>
+            </article>
+            <article class="metric-card metric-card--compact">
+              <div class="metric-card__label" data-i18n="metrics.routes"></div>
+              <div class="metric-card__value" id="domainOverviewRouteCount">0</div>
+            </article>
+          </div>
+          <section class="domain-overview__actions">
+            <button class="domain-action" id="domainOverviewCallsButton" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h3l2-6 4 12 2-6h5"/></svg>
+              <span><strong data-i18n="nav.calls"></strong><small data-i18n="domainOverview.callsHint"></small></span>
+            </button>
+            <button class="domain-action" id="domainOverviewExtensionsButton" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 9h8"/><path d="M8 13h5"/></svg>
+              <span><strong data-i18n="tabs.extensions"></strong><small data-i18n="domainOverview.extensionsHint"></small></span>
+            </button>
+            <button class="domain-action" id="domainOverviewRecordingButton" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>
+              <span><strong data-i18n="nav.recording"></strong><small data-i18n="domainOverview.recordingHint"></small></span>
+            </button>
+            <button class="domain-action" id="domainOverviewAiButton" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8v4H8z"/><path d="M5 9h14v10H5z"/><path d="M9 13h.01M15 13h.01"/><path d="M9 17h6"/></svg>
+              <span><strong data-i18n="nav.ai"></strong><small data-i18n="domainOverview.aiHint"></small></span>
+            </button>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="callsView">
+        <div class="runtime-strip" aria-label="Call summary">
+          <div class="runtime-strip__item">
+            <span data-i18n="runtime.totalCalls"></span>
+            <strong id="callsTotalCount">0</strong>
+          </div>
+          <div class="runtime-strip__item runtime-strip__item--ringing">
+            <span data-i18n="runtime.ringingCalls"></span>
+            <strong id="callsRingingCount">0</strong>
+          </div>
+          <div class="runtime-strip__item runtime-strip__item--answered">
+            <span data-i18n="runtime.answeredCalls"></span>
+            <strong id="callsAnsweredCount">0</strong>
+          </div>
+          <div class="runtime-strip__item runtime-strip__item--terminating">
+            <span data-i18n="runtime.terminatingCalls"></span>
+            <strong id="callsTerminatingCount">0</strong>
+          </div>
+        </div>
+
+        <div class="runtime-toolbar">
+          <label class="field-inline">
+            <span data-i18n="runtime.domain"></span>
+            <select id="callsDomainFilter"></select>
+          </label>
+          <span class="runtime-toolbar__timestamp" id="callsUpdatedAt"></span>
+        </div>
+
+        <div class="call-workspace">
+          <section class="runtime-table">
+            <div class="table-shell">
+              <table class="data-table data-table--runtime">
+                <thead>
+                  <tr>
+                    <th data-i18n="runtime.columns.state"></th>
+                    <th data-i18n="runtime.columns.caller"></th>
+                    <th class="direction-column"></th>
+                    <th data-i18n="runtime.columns.callee"></th>
+                    <th data-i18n="runtime.columns.domain"></th>
+                    <th data-i18n="runtime.columns.started"></th>
+                    <th data-i18n="runtime.columns.elapsed"></th>
+                    <th data-i18n="runtime.columns.status"></th>
+                  </tr>
+                </thead>
+                <tbody id="callsTableBody"></tbody>
+              </table>
+              <div class="empty-state" id="callsEmptyState" data-i18n="runtime.emptyCalls"></div>
+            </div>
+          </section>
+          <aside class="session-detail" id="sessionDetail"></aside>
+        </div>
+      </section>
+
+      <section class="view" id="cdrView">
+        <div class="runtime-toolbar">
+          <label class="field-inline">
+            <span data-i18n="runtime.domain"></span>
+            <select id="cdrDomainFilter"></select>
+          </label>
+          <label class="field-inline">
+            <span data-i18n="cdr.pageSize"></span>
+            <select id="cdrPageSize">
+              <option value="20">20</option>
+              <option value="50" selected>50</option>
+              <option value="100">100</option>
+            </select>
+          </label>
+        </div>
+        <section class="runtime-table">
+          <div class="table-shell">
+            <table class="data-table data-table--runtime data-table--cdr">
+              <thead>
+                <tr>
+                  <th data-i18n="cdr.columns.started"></th>
+                  <th data-i18n="runtime.columns.caller"></th>
+                  <th class="direction-column"></th>
+                  <th data-i18n="runtime.columns.callee"></th>
+                  <th data-i18n="cdr.columns.inbound"></th>
+                  <th data-i18n="cdr.columns.outbound"></th>
+                  <th data-i18n="cdr.columns.result"></th>
+                  <th data-i18n="cdr.columns.billable"></th>
+                  <th data-i18n="cdr.columns.cause"></th>
+                  <th data-i18n="cdr.columns.forwarding"></th>
+                  <th data-i18n="cdr.columns.media"></th>
+                  <th data-i18n="cdr.columns.trace"></th>
+                  <th data-i18n="cdr.columns.recording"></th>
+                  <th data-i18n="cdr.columns.ai"></th>
+                </tr>
+              </thead>
+              <tbody id="cdrTableBody"></tbody>
+            </table>
+            <div class="empty-state" id="cdrEmptyState" data-i18n="cdr.empty"></div>
+          </div>
+          <div class="pagination" id="cdrPagination"></div>
+        </section>
+      </section>
+
+      <dialog class="trace-dialog" id="callTraceDialog">
+        <div class="trace-dialog__surface">
+          <header class="trace-dialog__header">
+            <div>
+              <div class="utility-label" data-i18n="trace.title"></div>
+              <h2 class="trace-dialog__title mono-cell" id="callTraceTitle"></h2>
+            </div>
+            <div class="trace-dialog__meta">
+              <span id="callTraceCount"></span>
+              <span class="trace-incomplete" id="callTraceIncomplete" hidden data-i18n="trace.incomplete"></span>
+              <button class="icon-button" id="closeCallTraceButton" type="button" data-i18n-title="actions.close" data-i18n-aria-label="actions.close">×</button>
+            </div>
+          </header>
+          <div class="trace-dialog__body">
+            <section class="trace-flow">
+              <div class="trace-flow__head">
+                <div class="trace-flow__time-head">
+                  <span data-i18n="trace.localTime"></span>
+                  <span data-i18n="trace.relativeTime"></span>
+                </div>
+                <div class="trace-lane-header" id="callTraceCallerLane"></div>
+                <div class="trace-lane-header trace-lane-header--pbx" id="callTracePbxLane"></div>
+                <div class="trace-lane-header" id="callTraceCalleeLane"></div>
+              </div>
+              <div class="trace-flow__rows">
+                <div class="trace-flow__rails" aria-hidden="true">
+                  <span></span><span></span><span></span>
+                </div>
+                <div class="trace-flow__messages" id="callTraceRows"></div>
+                <div class="trace-flow__empty empty-state empty-state--plain" id="callTraceEmpty" hidden data-i18n="trace.empty"></div>
+              </div>
+            </section>
+            <section class="trace-packet">
+              <div class="trace-packet__head">
+                <span class="utility-label" data-i18n="trace.rawPacket"></span>
+                <span class="mono-cell" id="callTracePacketMeta"></span>
+              </div>
+              <pre id="callTracePacket"></pre>
+            </section>
+          </div>
+        </div>
+      </dialog>
+
+      <dialog class="ai-result-dialog" id="callAiResultDialog">
+        <div class="ai-result-dialog__surface">
+          <header class="ai-result-dialog__header">
+            <div>
+              <div class="utility-label" data-i18n="aiResult.title"></div>
+              <h2 class="ai-result-dialog__title mono-cell" id="callAiResultTitle"></h2>
+            </div>
+            <div class="ai-result-dialog__actions">
+              <label class="field-inline">
+                <span data-i18n="aiResult.version"></span>
+                <select id="callAiResultVersion"></select>
+              </label>
+              <button class="icon-button" id="closeCallAiResultButton" type="button" data-i18n-title="actions.close" data-i18n-aria-label="actions.close">×</button>
+            </div>
+          </header>
+          <div class="ai-result-dialog__body" id="callAiResultBody"></div>
+        </div>
+      </dialog>
+
+      <section class="view" id="recordingView">
+        <div class="runtime-toolbar recording-toolbar">
+          <label class="field-inline">
+            <span data-i18n="recording.domain"></span>
+            <select id="recordingDomainFilter"></select>
+          </label>
+          <button class="button button--primary" id="openRecordingPolicyButton" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            <span data-i18n="recording.add"></span>
+          </button>
+        </div>
+        <section class="runtime-table">
+          <div class="table-shell">
+            <table class="data-table data-table--runtime">
+              <thead>
+                <tr>
+                  <th data-i18n="recording.columns.name"></th>
+                  <th data-i18n="recording.columns.target"></th>
+                  <th data-i18n="recording.columns.direction"></th>
+                  <th data-i18n="recording.columns.priority"></th>
+                  <th data-i18n="recording.columns.state"></th>
+                  <th data-i18n="recording.columns.actions"></th>
+                </tr>
+              </thead>
+              <tbody id="recordingPolicyTableBody"></tbody>
+            </table>
+            <div class="empty-state" id="recordingPolicyEmptyState" data-i18n="recording.empty"></div>
+          </div>
+        </section>
+      </section>
+
+      <section class="view" id="aiView">
+        <div class="runtime-toolbar recording-toolbar">
+          <label class="field-inline">
+            <span data-i18n="ai.domain"></span>
+            <select id="aiDomainFilter"></select>
+          </label>
+          <div class="ai-toolbar__catalog">
+            <span class="status-pill" id="aiCatalogStatus"></span>
+            <button class="button button--primary" id="openAiPolicyButton" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              <span data-i18n="ai.add"></span>
+            </button>
+          </div>
+        </div>
+        <section class="runtime-table">
+          <div class="table-shell">
+            <table class="data-table data-table--runtime">
+              <thead>
+                <tr>
+                  <th data-i18n="ai.columns.name"></th>
+                  <th data-i18n="ai.columns.target"></th>
+                  <th data-i18n="ai.columns.direction"></th>
+                  <th data-i18n="ai.columns.profile"></th>
+                  <th data-i18n="ai.columns.priority"></th>
+                  <th data-i18n="ai.columns.state"></th>
+                  <th data-i18n="ai.columns.actions"></th>
+                </tr>
+              </thead>
+              <tbody id="aiPolicyTableBody"></tbody>
+            </table>
+            <div class="empty-state" id="aiPolicyEmptyState" data-i18n="ai.empty"></div>
+          </div>
+        </section>
+      </section>
+
+      <section class="view" id="systemView">
+        <form class="system-settings" id="systemSettingsForm">
+          <div class="system-settings__header">
+            <div>
+              <h2 class="panel__title" data-i18n="systemSettings.title"></h2>
+              <p class="panel__hint" data-i18n="systemSettings.hint"></p>
+            </div>
+            <button class="button button--primary" id="saveSystemSettingsButton" type="submit">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h12l2 2v14H5z"/><path d="M8 4v6h8V4"/><path d="M8 16h8"/></svg>
+              <span data-i18n="actions.save"></span>
+            </button>
+          </div>
+
+          <div class="system-setting-row">
+            <div class="system-setting-row__label">
+              <strong data-i18n="systemSettings.sipPort"></strong>
+              <span data-i18n="systemSettings.sipPortHint"></span>
+            </div>
+            <div class="system-setting-row__control system-setting-row__control--port">
+              <input id="systemSipPortInput" type="number" min="1" max="65535" required>
+              <div class="applied-setting">
+                <span data-i18n="systemSettings.appliedPort"></span>
+                <strong id="systemAppliedSipPort">-</strong>
+                <span class="status-pill" id="systemSipPortState">-</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="system-setting-row">
+            <div class="system-setting-row__label">
+              <strong data-i18n="systemSettings.dataDir"></strong>
+              <span data-i18n="systemSettings.dataDirHint"></span>
+            </div>
+            <div class="system-setting-row__control">
+              <input id="systemDataDirInput" type="text" readonly>
+            </div>
+          </div>
+
+          <div class="system-setting-row">
+            <div class="system-setting-row__label">
+              <strong data-i18n="systemSettings.recordingDir"></strong>
+              <span data-i18n="systemSettings.recordingDirHint"></span>
+            </div>
+            <div class="system-setting-row__control">
+              <input id="systemRecordingDirInput" type="text" required>
+            </div>
+          </div>
+
+          <div class="system-setting-row">
+            <div class="system-setting-row__label">
+              <strong data-i18n="systemSettings.recordingRetention"></strong>
+              <span data-i18n="systemSettings.recordingRetentionHint"></span>
+            </div>
+            <div class="system-setting-row__control system-setting-row__control--split">
+              <input id="systemRecordingRetentionInput" type="number" min="1" max="3650" required>
+              <input id="systemRecordingMaxSizeInput" type="number" min="1" max="1048576" required>
+            </div>
+          </div>
+
+          <div class="system-setting-row">
+            <div class="system-setting-row__label">
+              <strong data-i18n="systemSettings.logLevel"></strong>
+              <span data-i18n="systemSettings.logLevelHint"></span>
+            </div>
+            <div class="system-setting-row__control">
+              <select id="systemLogLevelInput">
+                <option value="error">error</option>
+                <option value="warn">warn</option>
+                <option value="info">info</option>
+                <option value="debug">debug</option>
+                <option value="trace">trace</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="system-setting-row">
+            <div class="system-setting-row__label">
+              <strong data-i18n="systemSettings.cdrSpool"></strong>
+              <span data-i18n="systemSettings.cdrSpoolHint"></span>
+            </div>
+            <div class="system-setting-row__control system-setting-row__control--triple">
+              <label class="compact-number-field">
+                <span data-i18n="systemSettings.cdrSpoolWarning"></span>
+                <input id="systemCdrSpoolWarningInput" type="number" min="1" required>
+              </label>
+              <label class="compact-number-field">
+                <span data-i18n="systemSettings.cdrSpoolResume"></span>
+                <input id="systemCdrSpoolResumeInput" type="number" min="1" required>
+              </label>
+              <label class="compact-number-field">
+                <span data-i18n="systemSettings.cdrSpoolReject"></span>
+                <input id="systemCdrSpoolRejectInput" type="number" min="1" required>
+              </label>
+            </div>
+          </div>
+
+          <div class="system-setting-row">
+            <div class="system-setting-row__label">
+              <strong data-i18n="systemSettings.callTrace"></strong>
+              <span data-i18n="systemSettings.callTraceHint"></span>
+            </div>
+            <div class="system-setting-row__control">
+              <label class="setting-switch">
+                <input id="systemCallTraceInput" type="checkbox" role="switch">
+                <span class="setting-switch__track" aria-hidden="true">
+                  <span class="setting-switch__thumb"></span>
+                </span>
+                <span class="setting-switch__state" id="systemCallTraceState">-</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="system-settings__footer">
+            <span class="system-settings__message" id="systemSettingsMessage" aria-live="polite"></span>
+          </div>
+        </form>
+      </section>
+
+      <section class="view" id="aiGatewayView">
+        <section class="panel ai-gateway-page">
+          <div class="panel__header panel__header--stacked">
+            <div>
+              <h2 class="panel__title" data-i18n="aiGateway.title"></h2>
+              <p class="panel__hint" data-i18n="aiGateway.hint"></p>
+            </div>
+            <button class="button button--ghost" id="refreshAiGatewayButton" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.9-4L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0 0 14.9 4L21 15"/><path d="M21 20v-5h-5"/></svg>
+              <span data-i18n="actions.refresh"></span>
+            </button>
+          </div>
+          <div class="ai-gateway-summary" id="aiGatewaySummary"></div>
+          <div class="table-shell">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th data-i18n="aiGateway.columns.profile"></th>
+                  <th data-i18n="aiGateway.columns.version"></th>
+                  <th data-i18n="aiGateway.columns.providers"></th>
+                  <th data-i18n="aiGateway.columns.capture"></th>
+                  <th data-i18n="aiGateway.columns.state"></th>
+                </tr>
+              </thead>
+              <tbody id="aiGatewayTableBody"></tbody>
+            </table>
+            <div class="empty-state" id="aiGatewayEmptyState" data-i18n="aiGateway.empty"></div>
+          </div>
+        </section>
+      </section>
+
+      <section class="view" id="domainListView">
+        <section class="panel">
+          <div class="panel__header panel__header--stacked">
+            <div class="toolbar">
+              <div class="toolbar__search">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <input id="domainSearchInput" type="text" data-i18n-placeholder="domains.searchPlaceholder" autocomplete="off">
+              </div>
+              <div class="toolbar__actions">
+                <button class="button button--primary" id="openDomainCreateButton" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                  <span data-i18n="domains.add"></span>
+                </button>
+              </div>
+            </div>
+            <div class="panel__hint" id="domainListHint" data-i18n="domains.listHint"></div>
+          </div>
+
+          <div class="table-shell">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th data-i18n="domains.columns.id"></th>
+                  <th data-i18n="domains.columns.name"></th>
+                  <th data-i18n="domains.columns.realm"></th>
+                  <th data-i18n="domains.columns.remark"></th>
+                  <th data-i18n="domains.columns.extensions"></th>
+                  <th data-i18n="domains.columns.status"></th>
+                  <th class="actions-column"></th>
+                </tr>
+              </thead>
+              <tbody id="domainTableBody"></tbody>
+            </table>
+            <div class="empty-state" id="domainEmptyState" data-i18n="domains.empty"></div>
+          </div>
+          <div class="pagination" id="domainPagination"></div>
+        </section>
+      </section>
+
+      <section class="view" id="usersView">
+        <section class="panel">
+          <div class="panel__header panel__header--stacked">
+            <div class="toolbar">
+              <div>
+                <h2 class="panel__title" data-i18n="users.title"></h2>
+                <p class="panel__hint" data-i18n="users.hint"></p>
+              </div>
+              <div class="toolbar__actions">
+                <button class="button button--primary" id="openUserCreateButton" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                  <span data-i18n="users.add"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="table-shell">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th data-i18n="users.columns.username"></th>
+                  <th data-i18n="users.columns.role"></th>
+                  <th data-i18n="users.columns.domains"></th>
+                  <th data-i18n="users.columns.state"></th>
+                  <th data-i18n="users.columns.updated"></th>
+                  <th class="actions-column"></th>
+                </tr>
+              </thead>
+              <tbody id="userTableBody"></tbody>
+            </table>
+            <div class="empty-state" id="userEmptyState" data-i18n="users.empty"></div>
+          </div>
+        </section>
+      </section>
+
+      <section class="view" id="domainDetailView">
+        <div class="detail-layout">
+          <section class="panel">
+            <div class="subview subview--active" id="extensionsSubview">
+              <div class="subview-toolbar">
+                <div class="subview-toolbar__title" data-i18n="tabs.extensions"></div>
+                <button class="button button--primary" id="openExtensionCreateButton" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                  <span data-i18n="extensionForm.add"></span>
+                </button>
+                <button class="button button--ghost" id="openExtensionBatchButton" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/><path d="M18 15v6"/><path d="M15 18h6"/></svg>
+                  <span data-i18n="extensionBatchForm.add"></span>
+                </button>
+              </div>
+              <div class="table-shell">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th data-i18n="extensions.columns.number"></th>
+                      <th data-i18n="extensions.columns.authUser"></th>
+                      <th data-i18n="extensions.columns.config"></th>
+                      <th data-i18n="extensions.columns.registration"></th>
+                      <th data-i18n="extensions.columns.expires"></th>
+                      <th data-i18n="extensions.columns.agent"></th>
+                      <th data-i18n="extensions.columns.contact"></th>
+                      <th class="actions-column"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="extensionTableBody"></tbody>
+                </table>
+                <div class="empty-state" id="extensionEmptyState" data-i18n="extensions.empty"></div>
+              </div>
+              <div class="pagination" id="extensionPagination"></div>
+            </div>
+
+            <div class="subview" id="trunksSubview">
+              <div class="resource-switch" role="tablist" aria-label="trunk type">
+                <button class="resource-switch__button active" id="showPeerTrunksButton" type="button" role="tab" aria-selected="true">
+                  <span data-i18n="peerTrunks.title"></span>
+                  <span class="resource-switch__count" id="peerTrunkTabCount">0</span>
+                </button>
+                <button class="resource-switch__button" id="showRegTrunksButton" type="button" role="tab" aria-selected="false">
+                  <span data-i18n="regTrunks.title"></span>
+                  <span class="resource-switch__count" id="regTrunkTabCount">0</span>
+                </button>
+              </div>
+
+              <div class="resource-pane resource-pane--active" id="peerTrunksPane" role="tabpanel">
+                <div class="subview-toolbar">
+                  <div class="subview-toolbar__title" data-i18n="peerTrunks.title"></div>
+                  <button class="button button--primary" id="openTrunkCreateButton" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                    <span data-i18n="trunkForm.add"></span>
+                  </button>
+                </div>
+                <div class="table-shell">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th data-i18n="trunks.columns.id"></th>
+                        <th data-i18n="trunks.columns.name"></th>
+                        <th data-i18n="trunks.columns.server"></th>
+                        <th data-i18n="trunks.columns.proxy"></th>
+                        <th data-i18n="trunks.columns.transport"></th>
+                        <th data-i18n="trunks.columns.keepAlive"></th>
+                        <th data-i18n="trunks.columns.status"></th>
+                        <th class="actions-column"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="trunkTableBody"></tbody>
+                  </table>
+                  <div class="empty-state" id="trunkEmptyState" data-i18n="trunks.empty"></div>
+                </div>
+                <div class="pagination" id="trunkPagination"></div>
+              </div>
+
+              <div class="resource-pane" id="regTrunksPane" role="tabpanel">
+                <div class="subview-toolbar">
+                  <div>
+                    <div class="subview-toolbar__title" data-i18n="regTrunks.title"></div>
+                    <div class="subview-toolbar__hint" data-i18n="regTrunks.groupHint"></div>
+                  </div>
+                  <button class="button button--primary" id="openRegTrunkCreateButton" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                    <span data-i18n="regTrunkForm.add"></span>
+                  </button>
+                </div>
+                <div class="table-shell">
+                  <table class="data-table grouped-trunk-table">
+                    <thead>
+                      <tr>
+                        <th data-i18n="regTrunks.columns.type"></th>
+                        <th data-i18n="regTrunks.columns.nameAccount"></th>
+                        <th data-i18n="regTrunks.columns.targetRef"></th>
+                        <th data-i18n="regTrunks.columns.protocol"></th>
+                        <th data-i18n="regTrunks.columns.lifecycle"></th>
+                        <th data-i18n="trunks.columns.status"></th>
+                        <th class="actions-column"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="regTrunkTableBody"></tbody>
+                  </table>
+                  <div class="empty-state" id="regTrunkEmptyState" data-i18n="regTrunks.empty"></div>
+                </div>
+                <div class="pagination" id="regTrunkPagination"></div>
+              </div>
+            </div>
+
+            <div class="subview" id="routesSubview">
+              <div class="resource-switch" role="tablist" aria-label="route direction">
+                <button class="resource-switch__button active" id="showOutboundRoutesButton" type="button" role="tab" aria-selected="true">
+                  <span data-i18n="outboundRoutes.title"></span>
+                  <span class="resource-switch__count" id="outboundRouteTabCount">0</span>
+                </button>
+                <button class="resource-switch__button" id="showInboundRoutesButton" type="button" role="tab" aria-selected="false">
+                  <span data-i18n="inboundRoutes.title"></span>
+                  <span class="resource-switch__count" id="inboundRouteTabCount">0</span>
+                </button>
+              </div>
+
+              <div class="resource-pane resource-pane--active" id="outboundRoutesPane" role="tabpanel">
+                <div class="subview-toolbar">
+                  <div class="subview-toolbar__title" data-i18n="outboundRoutes.title"></div>
+                  <button class="button button--primary" id="openRouteCreateButton" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                    <span data-i18n="routeForm.add"></span>
+                  </button>
+                </div>
+                <div class="table-shell">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th data-i18n="routes.columns.id"></th>
+                        <th data-i18n="routes.columns.priority"></th>
+                        <th data-i18n="routes.columns.name"></th>
+                        <th data-i18n="routes.columns.patterns"></th>
+                        <th data-i18n="routes.columns.transforms"></th>
+                        <th data-i18n="routes.columns.trunks"></th>
+                        <th data-i18n="routes.columns.status"></th>
+                        <th class="actions-column"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="routeTableBody"></tbody>
+                  </table>
+                  <div class="empty-state" id="routeEmptyState" data-i18n="routes.empty"></div>
+                </div>
+                <div class="pagination" id="routePagination"></div>
+              </div>
+
+              <div class="resource-pane" id="inboundRoutesPane" role="tabpanel">
+                <div class="subview-toolbar">
+                  <div class="subview-toolbar__title" data-i18n="inboundRoutes.title"></div>
+                  <button class="button button--primary" id="openInboundRouteCreateButton" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                    <span data-i18n="inboundRouteForm.add"></span>
+                  </button>
+                </div>
+                <div class="table-shell">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th data-i18n="routes.columns.id"></th>
+                        <th data-i18n="routes.columns.priority"></th>
+                        <th data-i18n="routes.columns.name"></th>
+                        <th data-i18n="inboundRoutes.columns.match"></th>
+                        <th data-i18n="routes.columns.patterns"></th>
+                        <th data-i18n="inboundRoutes.columns.target"></th>
+                        <th data-i18n="routes.columns.status"></th>
+                        <th class="actions-column"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="inboundRouteTableBody"></tbody>
+                  </table>
+                  <div class="empty-state" id="inboundRouteEmptyState" data-i18n="inboundRoutes.empty"></div>
+                </div>
+                <div class="pagination" id="inboundRoutePagination"></div>
+              </div>
+            </div>
+          </section>
+
+          <aside class="detail-side">
+            <section class="panel">
+              <div class="panel__header">
+                <div>
+                  <h2 class="panel__title" id="editorTitle" data-i18n="extensionForm.title"></h2>
+                  <p class="panel__hint" id="editorHint" data-i18n="extensionForm.hint"></p>
+                </div>
+                <button class="icon-button" id="closeEditorButton" type="button" aria-label="close">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12"/><path d="m6 6 12 12"/></svg>
+                </button>
+              </div>
+
+              <form class="editor-form editor-form--active" id="extensionForm">
+                <label class="field">
+                  <span data-i18n="extensionForm.number"></span>
+                  <input id="extNumberInput" type="text" inputmode="numeric" autocomplete="off" required>
+                </label>
+                <label class="field">
+                  <span data-i18n="extensionForm.authUser"></span>
+                  <input id="extAuthUserInput" type="text" autocomplete="off" required>
+                </label>
+                <label class="field">
+                  <span data-i18n="extensionForm.password"></span>
+                  <span class="password-field">
+                    <input id="extPasswordInput" type="password" autocomplete="new-password" required>
+                    <button class="icon-button password-toggle" id="toggleExtPasswordButton" type="button" aria-label="toggle password">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </span>
+                </label>
+                <label class="checkbox-field">
+                  <input id="extEnabledInput" type="checkbox" checked>
+                  <span data-i18n="extensionForm.enabled"></span>
+                </label>
+                <div class="editor-form__actions">
+                  <button class="button button--primary" type="submit">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
+                    <span data-i18n="extensionForm.save"></span>
+                  </button>
+                  <button class="button button--ghost" id="resetExtensionButton" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>
+                    <span data-i18n="extensionForm.reset"></span>
+                  </button>
+                </div>
+              </form>
+
+              <form class="editor-form" id="extensionBatchForm">
+                <label class="field">
+                  <span data-i18n="extensionBatchForm.start"></span>
+                  <input id="batchStartInput" type="text" inputmode="numeric" autocomplete="off" required>
+                </label>
+                <label class="field">
+                  <span data-i18n="extensionBatchForm.count"></span>
+                  <input id="batchCountInput" type="number" min="1" max="1000" value="10" required>
+                </label>
+                <label class="field">
+                  <span data-i18n="extensionBatchForm.password"></span>
+                  <span class="password-field">
+                    <input id="batchPasswordInput" type="password" autocomplete="new-password" required>
+                    <button class="icon-button password-toggle" id="toggleBatchPasswordButton" type="button" aria-label="toggle password">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </span>
+                </label>
+                <label class="checkbox-field">
+                  <input id="batchEnabledInput" type="checkbox" checked>
+                  <span data-i18n="extensionBatchForm.enabled"></span>
+                </label>
+                <div class="editor-form__actions">
+                  <button class="button button--primary" type="submit">
+                    <span data-i18n="extensionBatchForm.save"></span>
+                  </button>
+                  <button class="button button--ghost" id="resetExtensionBatchButton" type="button">
+                    <span data-i18n="extensionBatchForm.reset"></span>
+                  </button>
+                </div>
+              </form>
+
+              <form class="editor-form" id="trunkForm">
+                <label class="field">
+                  <span data-i18n="trunkForm.name"></span>
+                  <input id="trunkNameInput" type="text" autocomplete="off" required>
+                </label>
+                <label class="field">
+                  <span data-i18n="trunkForm.serverHost"></span>
+                  <input id="trunkServerHostInput" type="text" autocomplete="off" required>
+                </label>
+                <div class="field-grid">
+                  <label class="field">
+                    <span data-i18n="trunkForm.serverPort"></span>
+                    <input id="trunkServerPortInput" type="number" min="1" max="65535" value="5060" required>
+                  </label>
+                  <label class="field">
+                    <span data-i18n="trunkForm.transport"></span>
+                    <select id="trunkTransportInput">
+                      <option value="udp">UDP</option>
+                      <option value="tcp">TCP</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="field-grid">
+                  <label class="field">
+                    <span data-i18n="trunkForm.proxyHost"></span>
+                    <input id="trunkProxyHostInput" type="text" autocomplete="off">
+                  </label>
+                  <label class="field">
+                    <span data-i18n="trunkForm.proxyPort"></span>
+                    <input id="trunkProxyPortInput" type="number" min="1" max="65535">
+                  </label>
+                </div>
+                <label class="field">
+                  <span data-i18n="trunkForm.keepAlive"></span>
+                  <input id="trunkKeepAliveInput" type="number" min="0" max="3600" value="60" required>
+                </label>
+                <label class="checkbox-field">
+                  <input id="trunkEnabledInput" type="checkbox" checked>
+                  <span data-i18n="trunkForm.enabled"></span>
+                </label>
+                <div class="editor-form__actions">
+                  <button class="button button--primary" type="submit">
+                    <span data-i18n="trunkForm.save"></span>
+                  </button>
+                  <button class="button button--ghost" id="resetTrunkButton" type="button">
+                    <span data-i18n="trunkForm.reset"></span>
+                  </button>
+                </div>
+              </form>
+
+              <form class="editor-form" id="routeForm">
+                <label class="field">
+                  <span data-i18n="routeForm.name"></span>
+                  <input id="routeNameInput" type="text" autocomplete="off" required>
+                </label>
+                <div class="field-grid">
+                  <label class="field">
+                    <span data-i18n="routeForm.dstPattern"></span>
+                    <input id="routeDstPatternInput" type="text" autocomplete="off" required>
+                  </label>
+                  <label class="field">
+                    <span data-i18n="routeForm.srcPattern"></span>
+                    <input id="routeSrcPatternInput" type="text" autocomplete="off">
+                  </label>
+                </div>
+                <div class="field-grid">
+                  <label class="field">
+                    <span data-i18n="routeForm.priority"></span>
+                    <input id="routePriorityInput" type="number" min="0" max="10000" value="100" required>
+                  </label>
+                </div>
+                <fieldset class="field-group">
+                  <legend data-i18n="routeForm.dstTransform"></legend>
+                  <div class="transform-grid">
+                    <label class="field"><span data-i18n="routeForm.strip"></span><input id="routeDstStripInput" type="number" min="0" max="32" value="0" required></label>
+                    <label class="field"><span data-i18n="routeForm.prefix"></span><input id="routeDstPrefixInput" type="text" autocomplete="off"></label>
+                    <label class="field"><span data-i18n="routeForm.suffix"></span><input id="routeDstSuffixInput" type="text" autocomplete="off"></label>
+                  </div>
+                </fieldset>
+                <fieldset class="field-group">
+                  <legend data-i18n="routeForm.srcTransform"></legend>
+                  <div class="transform-grid">
+                    <label class="field"><span data-i18n="routeForm.strip"></span><input id="routeSrcStripInput" type="number" min="0" max="32" value="0" required></label>
+                    <label class="field"><span data-i18n="routeForm.prefix"></span><input id="routeSrcPrefixInput" type="text" autocomplete="off"></label>
+                    <label class="field"><span data-i18n="routeForm.suffix"></span><input id="routeSrcSuffixInput" type="text" autocomplete="off"></label>
+                  </div>
+                </fieldset>
+                <div class="field">
+                  <span data-i18n="routeForm.trunkRefs"></span>
+                  <div class="route-ref-picker">
+                    <select id="routeTrunkCandidateInput"></select>
+                    <button class="button button--ghost" id="addRouteTrunkButton" type="button">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                      <span data-i18n="routeForm.addTrunk"></span>
+                    </button>
+                  </div>
+                  <div class="route-ref-list" id="routeTrunkRefsList"></div>
+                </div>
+                <label class="checkbox-field">
+                  <input id="routeEnabledInput" type="checkbox" checked>
+                  <span data-i18n="routeForm.enabled"></span>
+                </label>
+                <div class="editor-form__actions">
+                  <button class="button button--primary" type="submit">
+                    <span data-i18n="routeForm.save"></span>
+                  </button>
+                  <button class="button button--ghost" id="resetRouteButton" type="button">
+                    <span data-i18n="routeForm.reset"></span>
+                  </button>
+                </div>
+              </form>
+
+              <form class="editor-form" id="regTrunkForm">
+                <label class="field"><span data-i18n="trunkForm.name"></span><input id="regTrunkNameInput" type="text" autocomplete="off" required></label>
+                <label class="field"><span data-i18n="trunkForm.serverHost"></span><input id="regTrunkServerHostInput" type="text" autocomplete="off" required></label>
+                <div class="field-grid">
+                  <label class="field"><span data-i18n="trunkForm.serverPort"></span><input id="regTrunkServerPortInput" type="number" min="1" max="65535" value="5060" required></label>
+                  <label class="field"><span data-i18n="trunkForm.transport"></span><select id="regTrunkTransportInput"><option value="udp">UDP</option><option value="tcp">TCP</option></select></label>
+                </div>
+                <div class="field-grid">
+                  <label class="field"><span data-i18n="trunkForm.proxyHost"></span><input id="regTrunkProxyHostInput" type="text" autocomplete="off"></label>
+                  <label class="field"><span data-i18n="trunkForm.proxyPort"></span><input id="regTrunkProxyPortInput" type="number" min="1" max="65535"></label>
+                </div>
+                <div class="field-grid">
+                  <label class="field"><span data-i18n="trunkForm.keepAlive"></span><input id="regTrunkKeepAliveInput" type="number" min="0" max="3600" value="60" required></label>
+                  <label class="field"><span data-i18n="regTrunkForm.expires"></span><input id="regTrunkExpiresInput" type="number" min="30" max="3600" value="300" required></label>
+                </div>
+                <label class="checkbox-field"><input id="regTrunkEnabledInput" type="checkbox" checked><span data-i18n="trunkForm.enabled"></span></label>
+                <div class="editor-form__actions"><button class="button button--primary" type="submit"><span data-i18n="regTrunkForm.save"></span></button><button class="button button--ghost" id="resetRegTrunkButton" type="button"><span data-i18n="trunkForm.reset"></span></button></div>
+              </form>
+
+              <form class="editor-form" id="regAccountForm">
+                <label class="field"><span data-i18n="regAccountForm.trunkId"></span><select id="regAccountTrunkIdInput" required></select></label>
+                <label class="field"><span data-i18n="regAccountForm.authName"></span><input id="regAccountAuthNameInput" type="text" autocomplete="off" required></label>
+                <label class="field">
+                  <span data-i18n="regAccountForm.password"></span>
+                  <span class="password-field">
+                    <input id="regAccountPasswordInput" type="password" autocomplete="new-password" required>
+                    <button class="icon-button password-toggle" id="toggleRegAccountPasswordButton" type="button" aria-label="toggle password">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </span>
+                </label>
+                <label class="checkbox-field"><input id="regAccountEnabledInput" type="checkbox" checked><span data-i18n="trunkForm.enabled"></span></label>
+                <div class="editor-form__actions"><button class="button button--primary" type="submit"><span data-i18n="regAccountForm.save"></span></button><button class="button button--ghost" id="resetRegAccountButton" type="button"><span data-i18n="trunkForm.reset"></span></button></div>
+              </form>
+
+              <form class="editor-form" id="inboundRouteForm">
+                <label class="field"><span data-i18n="routeForm.name"></span><input id="inboundRouteNameInput" type="text" autocomplete="off" required></label>
+                <label class="field"><span data-i18n="inboundRouteForm.trunkMatch"></span><select id="inboundRouteTrunkMatchInput"></select></label>
+                <div class="field-grid">
+                  <label class="field"><span data-i18n="inboundRouteForm.dstPattern"></span><input id="inboundRouteDstPatternInput" type="text" autocomplete="off" required></label>
+                  <label class="field"><span data-i18n="routeForm.srcPattern"></span><input id="inboundRouteSrcPatternInput" type="text" autocomplete="off"></label>
+                </div>
+                <div class="field-grid">
+                  <label class="field"><span data-i18n="inboundRouteForm.target"></span><select id="inboundRouteTargetInput" required></select></label>
+                  <label class="field"><span data-i18n="inboundRouteForm.priority"></span><input id="inboundRoutePriorityInput" type="number" min="0" max="10000" value="100" required></label>
+                </div>
+                <fieldset class="field-group">
+                  <legend data-i18n="routeForm.dstTransform"></legend>
+                  <div class="transform-grid">
+                    <label class="field"><span data-i18n="routeForm.strip"></span><input id="inboundRouteDstStripInput" type="number" min="0" max="32" value="0" required></label>
+                    <label class="field"><span data-i18n="routeForm.prefix"></span><input id="inboundRouteDstPrefixInput" type="text" autocomplete="off"></label>
+                    <label class="field"><span data-i18n="routeForm.suffix"></span><input id="inboundRouteDstSuffixInput" type="text" autocomplete="off"></label>
+                  </div>
+                </fieldset>
+                <fieldset class="field-group">
+                  <legend data-i18n="routeForm.srcTransform"></legend>
+                  <div class="transform-grid">
+                    <label class="field"><span data-i18n="routeForm.strip"></span><input id="inboundRouteSrcStripInput" type="number" min="0" max="32" value="0" required></label>
+                    <label class="field"><span data-i18n="routeForm.prefix"></span><input id="inboundRouteSrcPrefixInput" type="text" autocomplete="off"></label>
+                    <label class="field"><span data-i18n="routeForm.suffix"></span><input id="inboundRouteSrcSuffixInput" type="text" autocomplete="off"></label>
+                  </div>
+                </fieldset>
+                <label class="checkbox-field"><input id="inboundRouteEnabledInput" type="checkbox" checked><span data-i18n="routeForm.enabled"></span></label>
+                <div class="editor-form__actions"><button class="button button--primary" type="submit"><span data-i18n="inboundRouteForm.save"></span></button><button class="button button--ghost" id="resetInboundRouteButton" type="button"><span data-i18n="routeForm.reset"></span></button></div>
+              </form>
+
+              <div class="form-message" id="formMessage"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel__header">
+                <div>
+                  <h2 class="panel__title" data-i18n="mirror.title"></h2>
+                  <p class="panel__hint" id="mirrorHint"></p>
+                </div>
+              </div>
+              <div class="mirror-list" id="mirrorList"></div>
+            </section>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog class="modal" id="domainModal">
+    <form class="modal__surface" id="domainModalForm" method="dialog">
+      <div class="modal__header">
+        <div>
+          <h2 class="modal__title" data-i18n="domainModal.title"></h2>
+          <p class="modal__hint" data-i18n="domainModal.hint"></p>
+        </div>
+        <button class="icon-button" id="closeDomainModalButton" type="button" aria-label="close">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <input id="domainModalHiddenId" type="hidden">
+        <label class="field">
+          <span data-i18n="domainModal.name"></span>
+          <input id="domainModalNameInput" type="text" autocomplete="off" required>
+        </label>
+        <label class="field">
+          <span data-i18n="domainModal.realm"></span>
+          <input id="domainModalRealmInput" type="text" autocomplete="off" required>
+        </label>
+        <label class="field">
+          <span data-i18n="domainModal.password"></span>
+          <span class="password-field">
+            <input id="domainModalPasswordInput" type="password" autocomplete="new-password" required>
+            <button class="icon-button password-toggle" id="toggleDomainPasswordButton" type="button" aria-label="toggle password">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </span>
+        </label>
+        <label class="field">
+          <span data-i18n="domainModal.remark"></span>
+          <input id="domainModalRemarkInput" type="text" autocomplete="off">
+        </label>
+      </div>
+      <div class="modal__footer">
+        <button class="button button--ghost" id="cancelDomainModalButton" type="button">
+          <span data-i18n="domainModal.cancel"></span>
+        </button>
+        <button class="button button--primary" type="submit">
+          <span data-i18n="domainModal.save"></span>
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="userDialog">
+    <form class="modal__surface" id="userForm">
+      <div class="modal__header">
+        <div>
+          <h2 class="modal__title" id="userDialogTitle" data-i18n="users.formTitle"></h2>
+          <p class="modal__hint" data-i18n="users.formHint"></p>
+        </div>
+        <button class="icon-button" id="closeUserDialogButton" type="button" aria-label="close">×</button>
+      </div>
+      <div class="modal__body">
+        <input id="userIdInput" type="hidden">
+        <label class="field">
+          <span data-i18n="users.username"></span>
+          <input id="userUsernameInput" type="text" autocomplete="off" required>
+        </label>
+        <label class="field">
+          <span data-i18n="users.password"></span>
+          <input id="userPasswordInput" type="password" autocomplete="new-password">
+          <small data-i18n="users.passwordHint"></small>
+        </label>
+        <fieldset class="domain-grant-fieldset">
+          <legend data-i18n="users.domains"></legend>
+          <div class="domain-grant-list" id="userDomainGrantList"></div>
+        </fieldset>
+        <label class="checkbox-field">
+          <input id="userEnabledInput" type="checkbox" checked>
+          <span data-i18n="users.enabled"></span>
+        </label>
+        <div class="form-message" id="userFormMessage"></div>
+      </div>
+      <div class="modal__footer">
+        <button class="button button--ghost" id="cancelUserDialogButton" type="button" data-i18n="actions.cancel"></button>
+        <button class="button button--primary" type="submit" data-i18n="actions.save"></button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="recordingPolicyDialog">
+    <form class="modal__surface" id="recordingPolicyForm">
+      <div class="modal__header">
+        <div>
+          <h2 class="modal__title" id="recordingPolicyDialogTitle" data-i18n="recording.formTitle"></h2>
+          <p class="modal__hint" data-i18n="recording.formHint"></p>
+        </div>
+        <button class="icon-button" id="closeRecordingPolicyButton" type="button" aria-label="close">×</button>
+      </div>
+      <div class="modal__body">
+        <input id="recordingPolicyIdInput" type="hidden">
+        <label class="field">
+          <span data-i18n="recording.name"></span>
+          <input id="recordingPolicyNameInput" type="text" autocomplete="off" required>
+        </label>
+        <div class="field">
+          <span data-i18n="recording.targets"></span>
+          <div class="recording-target-picker" id="recordingPolicyTargetPicker"></div>
+        </div>
+        <div class="field-grid">
+          <label class="field">
+            <span data-i18n="recording.direction"></span>
+            <select id="recordingPolicyDirectionInput">
+              <option value="both" data-i18n="recording.directions.both"></option>
+              <option value="inbound" data-i18n="recording.directions.inbound"></option>
+              <option value="outbound" data-i18n="recording.directions.outbound"></option>
+            </select>
+          </label>
+          <label class="field">
+            <span data-i18n="recording.priority"></span>
+            <input id="recordingPolicyPriorityInput" type="number" min="-10000" max="10000" value="100" required>
+          </label>
+        </div>
+        <label class="checkbox-field">
+          <input id="recordingPolicyEnabledInput" type="checkbox" checked>
+          <span data-i18n="recording.enabled"></span>
+        </label>
+        <div class="form-message" id="recordingPolicyMessage"></div>
+      </div>
+      <div class="modal__footer">
+        <button class="button button--ghost" id="cancelRecordingPolicyButton" type="button" data-i18n="actions.cancel"></button>
+        <button class="button button--primary" type="submit" data-i18n="actions.save"></button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="aiPolicyDialog">
+    <form class="modal__surface" id="aiPolicyForm">
+      <div class="modal__header">
+        <div>
+          <h2 class="modal__title" data-i18n="ai.formTitle"></h2>
+          <p class="modal__hint" data-i18n="ai.formHint"></p>
+        </div>
+        <button class="icon-button" id="closeAiPolicyButton" type="button" aria-label="close">×</button>
+      </div>
+      <div class="modal__body">
+        <input id="aiPolicyIdInput" type="hidden">
+        <label class="field">
+          <span data-i18n="ai.name"></span>
+          <input id="aiPolicyNameInput" type="text" autocomplete="off" required>
+        </label>
+        <div class="field">
+          <span data-i18n="ai.targets"></span>
+          <div class="recording-target-picker" id="aiPolicyTargetPicker"></div>
+        </div>
+        <label class="field">
+          <span data-i18n="ai.profile"></span>
+          <select id="aiPolicyProfileInput" required></select>
+        </label>
+        <div class="field-grid">
+          <label class="field">
+            <span data-i18n="ai.direction"></span>
+            <select id="aiPolicyDirectionInput">
+              <option value="any" data-i18n="ai.directions.any"></option>
+              <option value="internal" data-i18n="ai.directions.internal"></option>
+              <option value="inbound" data-i18n="ai.directions.inbound"></option>
+              <option value="outbound" data-i18n="ai.directions.outbound"></option>
+            </select>
+          </label>
+          <label class="field">
+            <span data-i18n="ai.priority"></span>
+            <input id="aiPolicyPriorityInput" type="number" min="-10000" max="10000" value="100" required>
+          </label>
+        </div>
+        <label class="checkbox-field">
+          <input id="aiPolicyEnabledInput" type="checkbox" checked>
+          <span data-i18n="ai.enabled"></span>
+        </label>
+        <div class="form-message" id="aiPolicyMessage"></div>
+      </div>
+      <div class="modal__footer">
+        <button class="button button--ghost" id="cancelAiPolicyButton" type="button" data-i18n="actions.cancel"></button>
+        <button class="button button--primary" type="submit" data-i18n="actions.save"></button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="/static/js/app.js"></script>
+</body>
+</html>
