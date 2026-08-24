@@ -36,12 +36,15 @@ const state = {
   editingRegTrunkId: null,
   editingRegAccountId: null,
   editingInboundRouteId: null,
+  editingAiAgentId: null,
   extensions: [],
   trunks: [],
   regTrunks: [],
   regAccounts: [],
   routes: [],
   inboundRoutes: [],
+  aiAgents: [],
+  aiProfiles: [],
   trunkOptions: [],
   regTrunkOptions: [],
   extensionOptions: [],
@@ -59,7 +62,8 @@ const state = {
     trunks: 1,
     regTrunks: 1,
     routes: 1,
-    inboundRoutes: 1
+    inboundRoutes: 1,
+    aiAgents: 1
   },
   pagination: {
     domains: null,
@@ -67,7 +71,8 @@ const state = {
     trunks: null,
     regTrunks: null,
     routes: null,
-    inboundRoutes: null
+    inboundRoutes: null,
+    aiAgents: null
   },
   pageSize: 20
 };
@@ -102,6 +107,7 @@ const els = {
   navUsersButton: document.getElementById("navUsersButton"),
   navDomainOverviewButton: document.getElementById("navDomainOverviewButton"),
   navDomainExtensionsButton: document.getElementById("navDomainExtensionsButton"),
+  navDomainAiAgentsButton: document.getElementById("navDomainAiAgentsButton"),
   navDomainTrunksButton: document.getElementById("navDomainTrunksButton"),
   navDomainRoutesButton: document.getElementById("navDomainRoutesButton"),
   exitDomainButton: document.getElementById("exitDomainButton"),
@@ -174,6 +180,10 @@ const els = {
   routeEmptyState: document.getElementById("routeEmptyState"),
   inboundRouteTableBody: document.getElementById("inboundRouteTableBody"),
   inboundRouteEmptyState: document.getElementById("inboundRouteEmptyState"),
+  aiAgentsSubview: document.getElementById("aiAgentsSubview"),
+  aiAgentTableBody: document.getElementById("aiAgentTableBody"),
+  aiAgentEmptyState: document.getElementById("aiAgentEmptyState"),
+  aiAgentPagination: document.getElementById("aiAgentPagination"),
   extensionPagination: document.getElementById("extensionPagination"),
   trunkPagination: document.getElementById("trunkPagination"),
   regTrunkPagination: document.getElementById("regTrunkPagination"),
@@ -261,6 +271,15 @@ const els = {
   inboundRouteSrcPrefixInput: document.getElementById("inboundRouteSrcPrefixInput"),
   inboundRouteSrcSuffixInput: document.getElementById("inboundRouteSrcSuffixInput"),
   inboundRouteEnabledInput: document.getElementById("inboundRouteEnabledInput"),
+  aiAgentForm: document.getElementById("aiAgentForm"),
+  aiAgentIdInput: document.getElementById("aiAgentIdInput"),
+  aiAgentNameInput: document.getElementById("aiAgentNameInput"),
+  aiAgentServiceNumberInput: document.getElementById("aiAgentServiceNumberInput"),
+  aiAgentProfileInput: document.getElementById("aiAgentProfileInput"),
+  aiAgentFallbackTargetInput: document.getElementById("aiAgentFallbackTargetInput"),
+  aiAgentEnabledInput: document.getElementById("aiAgentEnabledInput"),
+  openAiAgentCreateButton: document.getElementById("openAiAgentCreateButton"),
+  resetAiAgentButton: document.getElementById("resetAiAgentButton"),
   resetInboundRouteButton: document.getElementById("resetInboundRouteButton"),
   formMessage: document.getElementById("formMessage"),
   mirrorHint: document.getElementById("mirrorHint"),
@@ -328,6 +347,7 @@ function setView(view) {
   els.navUsersButton.classList.toggle("active", view === "users");
   els.navDomainOverviewButton.classList.toggle("active", view === "domainOverview");
   els.navDomainExtensionsButton.classList.toggle("active", view === "detail" && state.currentTab === "extensions");
+  els.navDomainAiAgentsButton.classList.toggle("active", view === "detail" && state.currentTab === "aiAgents");
   els.navDomainTrunksButton.classList.toggle("active", view === "detail" && ["trunks", "regTrunks", "regAccounts"].includes(state.currentTab));
   els.navDomainRoutesButton.classList.toggle("active", view === "detail" && ["routes", "inboundRoutes"].includes(state.currentTab));
   const domainContext = isDomainView(view) && Boolean(state.selectedDomainId);
@@ -399,8 +419,10 @@ function setDetailTab(tab) {
       ? "trunks"
       : tab === "inboundRoutes"
         ? "routes"
+        : tab === "aiAgents" ? "aiAgents"
         : tab;
   els.extensionsSubview.classList.toggle("subview--active", viewTab === "extensions");
+  els.aiAgentsSubview.classList.toggle("subview--active", viewTab === "aiAgents");
   els.trunksSubview.classList.toggle("subview--active", viewTab === "trunks");
   els.routesSubview.classList.toggle("subview--active", viewTab === "routes");
   els.extensionForm.classList.toggle("editor-form--active", tab === "extensions");
@@ -410,6 +432,7 @@ function setDetailTab(tab) {
   els.regTrunkForm.classList.toggle("editor-form--active", tab === "regTrunks");
   els.regAccountForm.classList.toggle("editor-form--active", tab === "regAccounts");
   els.inboundRouteForm.classList.toggle("editor-form--active", tab === "inboundRoutes");
+  els.aiAgentForm.classList.toggle("editor-form--active", tab === "aiAgents");
 
   if (tab === "extensions") {
     els.editorTitle.textContent = t("extensionForm.title");
@@ -429,6 +452,9 @@ function setDetailTab(tab) {
   } else if (tab === "regAccounts") {
     els.editorTitle.textContent = t("regAccountForm.title");
     els.editorHint.textContent = t("regAccountForm.hint");
+  } else if (tab === "aiAgents") {
+    els.editorTitle.textContent = t("aiAgentForm.title");
+    els.editorHint.textContent = t("aiAgentForm.hint");
   } else {
     els.editorTitle.textContent = t("inboundRouteForm.title");
     els.editorHint.textContent = t("inboundRouteForm.hint");
@@ -564,6 +590,7 @@ async function loadPagedTable(pageName) {
   if (pageName === "regTrunks" && state.selectedDomainId) await loadRegTrunks(state.selectedDomainId);
   if (pageName === "routes" && state.selectedDomainId) await loadOutboundRoutes(state.selectedDomainId);
   if (pageName === "inboundRoutes" && state.selectedDomainId) await loadInboundRoutes(state.selectedDomainId);
+  if (pageName === "aiAgents" && state.selectedDomainId) await loadAiAgents(state.selectedDomainId);
 }
 
 function renderDomainTable() {
@@ -817,7 +844,10 @@ function renderInboundRouteSelects() {
     { value: "rej", label: t("inboundRouteForm.targetReject") },
     ...state.extensionOptions
       .filter(extension => extension.enabled)
-      .map(extension => ({ value: `ext-${extension.number}`, label: `${extension.number} · ${extension.auth_user}` }))
+      .map(extension => ({ value: `ext-${extension.number}`, label: `${extension.number} · ${extension.auth_user}` })),
+    ...state.aiAgents
+      .filter(agent => agent.enabled)
+      .map(agent => ({ value: `ai_agent:${agent.agent_id}`, label: `${agent.service_number} · ${agent.name} · AI` }))
   ];
   els.inboundRouteTargetInput.innerHTML = targets
     .map(option => `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`)
@@ -1120,6 +1150,18 @@ function renderInboundRoutes() {
   renderPagination("inboundRoutes", state.inboundRoutes.length, els.inboundRoutePagination);
 }
 
+function renderAiAgents() {
+  els.aiAgentTableBody.innerHTML = "";
+  els.aiAgentEmptyState.hidden = state.aiAgents.length > 0;
+  for (const agent of state.aiAgents) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="mono">${escapeHtml(agent.service_number)}</td><td>${escapeHtml(agent.name)}</td><td class="mono">${escapeHtml(agent.agent_id)}</td><td class="mono">${escapeHtml(agent.profile_id)}</td><td><span class="chip ${agent.enabled ? "enabled" : "off"}">${escapeHtml(agent.enabled ? t("state.enabled") : t("state.disabled"))}</span></td><td class="actions-column">${actionButtons("ai-agent", agent.id)}</td>`;
+    els.aiAgentTableBody.appendChild(tr);
+  }
+  bindResourceActions("ai-agent", state.aiAgents, "aiAgents", deleteAiAgent);
+  renderPagination("aiAgents", state.aiAgents.length, els.aiAgentPagination);
+}
+
 function renderMirror() {
   els.mirrorList.innerHTML = "";
   els.mirrorHint.textContent = state.mirrorReady ? t("mirror.ready") : t("mirror.notReady");
@@ -1219,6 +1261,15 @@ function resetInboundRouteForm() {
   renderInboundRouteSelects();
 }
 
+function resetAiAgentForm() {
+  els.aiAgentForm.reset();
+  state.editingAiAgentId = null;
+  els.aiAgentEnabledInput.checked = true;
+  els.aiAgentIdInput.disabled = false;
+  els.aiAgentServiceNumberInput.disabled = false;
+  renderAiAgentProfileSelect();
+}
+
 function openRegAccountForTrunk(trunkId) {
   openEditor("regAccounts");
   const trunk = state.regTrunkOptions.find(item => item.id === trunkId);
@@ -1286,6 +1337,18 @@ function openEditor(tab, item = null) {
     ensureSelectOption(els.inboundRouteTargetInput, item?.target, item?.target);
     els.inboundRouteNameInput.value = item?.name || ""; els.inboundRouteTrunkMatchInput.value = item?.trunk_match || ""; els.inboundRouteDstPatternInput.value = item?.dst_pattern || ""; els.inboundRouteSrcPatternInput.value = item?.src_pattern || ""; els.inboundRouteTargetInput.value = item?.target || "auto"; els.inboundRoutePriorityInput.value = item?.priority ?? 100; els.inboundRouteDstStripInput.value = item?.dst_strip ?? 0; els.inboundRouteDstPrefixInput.value = item?.dst_prefix || ""; els.inboundRouteDstSuffixInput.value = item?.dst_suffix || ""; els.inboundRouteSrcStripInput.value = item?.src_strip ?? 0; els.inboundRouteSrcPrefixInput.value = item?.src_prefix || ""; els.inboundRouteSrcSuffixInput.value = item?.src_suffix || ""; els.inboundRouteEnabledInput.checked = item?.enabled ?? true;
     window.setTimeout(() => els.inboundRouteNameInput.focus(), 0);
+  } else if (tab === "aiAgents") {
+    resetAiAgentForm(); state.editingAiAgentId = item?.id ?? null;
+    els.aiAgentIdInput.value = item?.agent_id || "";
+    els.aiAgentNameInput.value = item?.name || "";
+    els.aiAgentServiceNumberInput.value = item?.service_number || "";
+    els.aiAgentFallbackTargetInput.value = item?.fallback_target || "";
+    renderAiAgentProfileSelect();
+    els.aiAgentProfileInput.value = item?.profile_id || "";
+    els.aiAgentEnabledInput.checked = item?.enabled ?? true;
+    els.aiAgentIdInput.disabled = Boolean(item);
+    els.aiAgentServiceNumberInput.disabled = Boolean(item);
+    window.setTimeout(() => els.aiAgentNameInput.focus(), 0);
   }
   els.detailSide.classList.add("editor-open");
 }
@@ -1493,6 +1556,36 @@ async function loadInboundRoutes(domainId) {
   renderInboundRoutes();
 }
 
+async function loadAiAgents(domainId) {
+  const data = commandData(await api(`/api/ai-agents?domain=${encodeURIComponent(domainId)}&${pageQuery("aiAgents")}`));
+  state.aiAgents = data.ai_agents || [];
+  state.pagination.aiAgents = data.pagination || null;
+  renderAiAgents();
+  renderInboundRouteSelects();
+}
+
+async function loadAiProfiles() {
+  try {
+    const data = commandData(await api("/api/ai-profiles"));
+    state.aiProfiles = data.profiles || data.ai_profiles || [];
+  } catch (_) {
+    state.aiProfiles = [];
+  }
+  renderAiAgentProfileSelect();
+}
+
+function renderAiAgentProfileSelect() {
+  const current = els.aiAgentProfileInput.value;
+  const profiles = state.aiProfiles.filter(item => item.enabled !== false && (item.executable !== false));
+  els.aiAgentProfileInput.innerHTML = profiles.map(item => {
+    const profile = item.profile || item;
+    const id = profile.profile_id || item.profile_id;
+    return `<option value="${escapeHtml(id)}">${escapeHtml(id)}${profile.profile_version ? ` · v${escapeHtml(profile.profile_version)}` : ""}</option>`;
+  }).join("");
+  ensureSelectOption(els.aiAgentProfileInput, current, current);
+  if (current) els.aiAgentProfileInput.value = current;
+}
+
 async function loadExtensionOptions(domainId) {
   const data = commandData(await api(`/api/extensions?domain=${encodeURIComponent(domainId)}&${fixedPageQuery()}`));
   state.extensionOptions = data.extensions || [];
@@ -1543,7 +1636,9 @@ async function selectDomain(domainId) {
     loadTrunkStatus(domainId),
     loadExtensions(domainId),
     loadTrunks(domainId),
-    loadRoutes(domainId)
+    loadRoutes(domainId),
+    loadAiAgents(domainId),
+    loadAiProfiles()
   ]);
   renderDomainOverview();
   return true;
@@ -1836,9 +1931,27 @@ async function saveInboundRoute(event) {
   } catch (error) { setFormMessage(error.message, "error"); }
 }
 
+async function saveAiAgent(event) {
+  event.preventDefault();
+  if (!state.selectedDomainId) return;
+  try {
+    const payload = {
+      agent_id: els.aiAgentIdInput.value.trim(),
+      name: els.aiAgentNameInput.value.trim(),
+      service_number: els.aiAgentServiceNumberInput.value.trim(),
+      profile_id: els.aiAgentProfileInput.value,
+      fallback_target: els.aiAgentFallbackTargetInput.value.trim() || null,
+      enabled: els.aiAgentEnabledInput.checked
+    };
+    await api(state.editingAiAgentId === null ? "/api/ai-agents" : `/api/ai-agents/${encodeURIComponent(state.selectedDomainId)}/${state.editingAiAgentId}`, { method: state.editingAiAgentId === null ? "POST" : "PATCH", body: JSON.stringify(state.editingAiAgentId === null ? { domain_id: state.selectedDomainId, ...payload } : payload) });
+    resetAiAgentForm(); await openDomainDetail(state.selectedDomainId, "aiAgents"); closeEditor(); setFormMessage(t("message.aiAgentSaved"), "ok");
+  } catch (error) { setFormMessage(error.message, "error"); }
+}
+
 async function deleteRegTrunk(id) { await deleteDomainResource("/api/reg-trunks", id, "message.regTrunkDeleted"); }
 async function deleteRegAccount(id) { await deleteDomainResource("/api/reg-accounts", id, "message.regAccountDeleted"); }
 async function deleteInboundRoute(id) { await deleteDomainResource("/api/inbound-routes", id, "message.inboundRouteDeleted"); }
+async function deleteAiAgent(id) { await deleteDomainResource("/api/ai-agents", id, "message.aiAgentDeleted"); }
 async function deleteDomainResource(endpoint, id, messageKey) {
   if (!state.selectedDomainId) return;
   try { await api(`${endpoint}/${encodeURIComponent(state.selectedDomainId)}/${id}`, { method: "DELETE" }); await openDomainDetail(state.selectedDomainId); setFormMessage(t(messageKey), "ok"); } catch (error) { setFormMessage(error.message, "error"); }
@@ -1989,6 +2102,7 @@ function bindEvents() {
   els.navUsersButton.addEventListener("click", () => setView("users"));
   els.navDomainOverviewButton.addEventListener("click", () => setView("domainOverview"));
   els.navDomainExtensionsButton.addEventListener("click", () => openDomainDetail(state.selectedDomainId, "extensions"));
+  els.navDomainAiAgentsButton.addEventListener("click", () => openDomainDetail(state.selectedDomainId, "aiAgents"));
   els.navDomainTrunksButton.addEventListener("click", () => openDomainDetail(state.selectedDomainId, "trunks"));
   els.navDomainRoutesButton.addEventListener("click", () => openDomainDetail(state.selectedDomainId, "routes"));
   els.exitDomainButton.addEventListener("click", leaveDomainContext);
@@ -2013,6 +2127,7 @@ function bindEvents() {
   els.openRegTrunkCreateButton.addEventListener("click", () => openEditor("regTrunks"));
   els.openRouteCreateButton.addEventListener("click", () => openEditor("routes"));
   els.openInboundRouteCreateButton.addEventListener("click", () => openEditor("inboundRoutes"));
+  els.openAiAgentCreateButton.addEventListener("click", () => openEditor("aiAgents"));
   els.showPeerTrunksButton.addEventListener("click", () => setTrunkView("peer"));
   els.showRegTrunksButton.addEventListener("click", () => setTrunkView("registered"));
   els.showOutboundRoutesButton.addEventListener("click", () => setRouteView("outbound"));
@@ -2051,6 +2166,8 @@ function bindEvents() {
   els.toggleDomainPasswordButton.addEventListener("click", () => togglePassword(els.domainModalPasswordInput, els.toggleDomainPasswordButton));
   els.inboundRouteForm.addEventListener("submit", saveInboundRoute);
   els.resetInboundRouteButton.addEventListener("click", resetInboundRouteForm);
+  els.aiAgentForm.addEventListener("submit", saveAiAgent);
+  els.resetAiAgentButton.addEventListener("click", resetAiAgentForm);
 }
 
 async function init() {

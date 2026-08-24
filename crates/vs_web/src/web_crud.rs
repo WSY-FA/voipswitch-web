@@ -21,6 +21,7 @@ pub enum WebTable {
     OutboundRoute,
     RecordingPolicy,
     AiPolicy,
+    AiAgent,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -41,6 +42,7 @@ impl WebTable {
             Self::OutboundRoute => "outbound_route",
             Self::RecordingPolicy => "recording_policy",
             Self::AiPolicy => "ai_policy",
+            Self::AiAgent => "ai_agent",
         }
     }
 
@@ -55,6 +57,7 @@ impl WebTable {
             Self::OutboundRoute => "outbound_routes",
             Self::RecordingPolicy => "recording_policies",
             Self::AiPolicy => "ai_policies",
+            Self::AiAgent => "ai_agents",
         }
     }
 }

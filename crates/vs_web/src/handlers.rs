@@ -119,6 +119,11 @@ pub fn router() -> Router<SharedState> {
             "/api/inbound-routes/:domain_id/:id",
             patch(update_inbound_route).delete(delete_inbound_route),
         )
+        .route("/api/ai-agents", get(ai_agents).post(create_ai_agent))
+        .route(
+            "/api/ai-agents/:domain_id/:id",
+            patch(update_ai_agent).delete(delete_ai_agent),
+        )
         .route(
             "/api/recording-policies",
             get(recording_policies).post(create_recording_policy),
@@ -1401,6 +1406,59 @@ async fn update_inbound_route(
     .await
 }
 
+async fn ai_agents(
+    State(state): State<SharedState>,
+    auth: AuthSession,
+    Query(query): Query<ListQuery>,
+) -> Response {
+    table_collection(&state, &auth, query, WebTable::AiAgent).await
+}
+
+async fn create_ai_agent(
+    State(state): State<SharedState>,
+    auth: AuthSession,
+    Json(payload): Json<AiAgentPayload>,
+) -> Response {
+    let domain_id = payload.domain_id.clone();
+    if let Err(response) = ensure_domain_access(&auth, &domain_id) {
+        return response;
+    }
+    api_result(
+        crud(&state)
+            .insert(
+                WebTable::AiAgent,
+                Some(DomainId::from(domain_id)),
+                ai_agent_fields(payload.into()),
+            )
+            .await,
+    )
+}
+
+async fn update_ai_agent(
+    State(state): State<SharedState>,
+    auth: AuthSession,
+    Path((domain_id, id)): Path<(String, u64)>,
+    Json(payload): Json<AiAgentUpdatePayload>,
+) -> Response {
+    update_domain_resource(
+        &state,
+        &auth,
+        WebTable::AiAgent,
+        domain_id,
+        id,
+        ai_agent_fields(payload),
+    )
+    .await
+}
+
+async fn delete_ai_agent(
+    State(state): State<SharedState>,
+    auth: AuthSession,
+    Path((domain_id, id)): Path<(String, u64)>,
+) -> Response {
+    delete_domain_resource(&state, &auth, WebTable::AiAgent, domain_id, id).await
+}
+
 async fn recording_policies(
     State(state): State<SharedState>,
     auth: AuthSession,
@@ -2124,6 +2182,31 @@ struct InboundRouteUpdatePayload {
 }
 
 #[derive(Debug, Deserialize)]
+struct AiAgentPayload {
+    domain_id: String,
+    agent_id: String,
+    name: String,
+    service_number: String,
+    profile_id: String,
+    #[serde(default = "default_true")]
+    enabled: bool,
+    #[serde(default)]
+    fallback_target: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct AiAgentUpdatePayload {
+    agent_id: String,
+    name: String,
+    service_number: String,
+    profile_id: String,
+    #[serde(default = "default_true")]
+    enabled: bool,
+    #[serde(default)]
+    fallback_target: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
 struct RecordingPolicyPayload {
     domain_id: String,
     name: String,
@@ -2258,6 +2341,33 @@ fn inbound_route_fields(payload: InboundRouteUpdatePayload) -> BTreeMap<String, 
         ("priority", payload.priority.to_string()),
         ("enabled", payload.enabled.to_string()),
     ])
+}
+
+fn ai_agent_fields(payload: AiAgentUpdatePayload) -> BTreeMap<String, String> {
+    fields([
+        ("agent_id", payload.agent_id),
+        ("name", payload.name),
+        ("service_number", payload.service_number),
+        ("profile_id", payload.profile_id),
+        ("enabled", payload.enabled.to_string()),
+        (
+            "fallback_target",
+            payload.fallback_target.unwrap_or_default(),
+        ),
+    ])
+}
+
+impl From<AiAgentPayload> for AiAgentUpdatePayload {
+    fn from(payload: AiAgentPayload) -> Self {
+        Self {
+            agent_id: payload.agent_id,
+            name: payload.name,
+            service_number: payload.service_number,
+            profile_id: payload.profile_id,
+            enabled: payload.enabled,
+            fallback_target: payload.fallback_target,
+        }
+    }
 }
 
 fn recording_policy_fields(payload: RecordingPolicyPayload) -> BTreeMap<String, String> {

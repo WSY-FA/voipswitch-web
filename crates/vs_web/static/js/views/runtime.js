@@ -262,10 +262,25 @@ export function createRuntimeViews({ t }) {
     return Array.isArray(value) ? value : [];
   }
 
+  function aiParticipantLabel(participantId) {
+    const key = {
+      caller: "aiResult.participant.caller",
+      callee: "aiResult.participant.callee"
+    }[String(participantId || "").toLowerCase()];
+    const label = key ? t(key) : "";
+    return label || participantId || t("aiResult.participant");
+  }
+
+  function localizeAiText(value) {
+    return String(value ?? "")
+      .replace(/\bcall(?:er)?\b/gi, "主叫")
+      .replace(/\bcallee\b/gi, "被叫");
+  }
+
   function renderAiList(items) {
     const values = aiResultArray(items);
     if (!values.length) return `<span class="trace-unavailable">${escapeHtml(t("aiResult.noItems"))}</span>`;
-    return `<ul class="ai-result-list">${values.map(item => `<li>${escapeHtml(typeof item === "string" ? item : JSON.stringify(item))}</li>`).join("")}</ul>`;
+    return `<ul class="ai-result-list">${values.map(item => `<li>${escapeHtml(localizeAiText(typeof item === "string" ? item : JSON.stringify(item)))}</li>`).join("")}</ul>`;
   }
 
   function renderAiResult(record) {
@@ -284,22 +299,22 @@ export function createRuntimeViews({ t }) {
           <div><span>${escapeHtml(t("aiResult.profile"))}</span><strong class="mono-cell">${escapeHtml(record.profile_id || "-")} · v${escapeHtml(record.profile_version ?? "-")}</strong></div>
           <div><span>${escapeHtml(t("aiResult.receivedAt"))}</span><strong>${escapeHtml(formatDateTime(record.received_at_ms))}</strong></div>
         </div>
-        <article><h3>${escapeHtml(t("aiResult.summary"))}</h3><p>${escapeHtml(result.summary || t("aiResult.noItems"))}</p></article>
+        <article><h3>${escapeHtml(t("aiResult.summary"))}</h3><p>${escapeHtml(localizeAiText(result.summary || t("aiResult.noItems")))}</p></article>
         <div class="ai-result-summary__grid">
-          <article><h3>${escapeHtml(t("aiResult.purpose"))}</h3><p>${escapeHtml(result.purpose || t("aiResult.noItems"))}</p></article>
-          <article><h3>${escapeHtml(t("aiResult.outcome"))}</h3><p>${escapeHtml(result.outcome || t("aiResult.noItems"))}</p></article>
+          <article><h3>${escapeHtml(t("aiResult.purpose"))}</h3><p>${escapeHtml(localizeAiText(result.purpose || t("aiResult.noItems")))}</p></article>
+          <article><h3>${escapeHtml(t("aiResult.outcome"))}</h3><p>${escapeHtml(localizeAiText(result.outcome || t("aiResult.noItems")))}</p></article>
           <article><h3>${escapeHtml(t("aiResult.keyPoints"))}</h3>${renderAiList(result.key_points)}</article>
           <article><h3>${escapeHtml(t("aiResult.actionItems"))}</h3>${renderAiList(result.action_items)}</article>
         </div>
-        <article><h3>${escapeHtml(t("aiResult.tags"))}</h3><div class="recording-target-summary">${aiResultArray(result.tags).length ? aiResultArray(result.tags).map(tag => `<span>${escapeHtml(String(tag))}</span>`).join("") : `<span>${escapeHtml(t("aiResult.noItems"))}</span>`}</div></article>
+        <article><h3>${escapeHtml(t("aiResult.tags"))}</h3><div class="recording-target-summary">${aiResultArray(result.tags).length ? aiResultArray(result.tags).map(tag => `<span>${escapeHtml(localizeAiText(tag))}</span>`).join("") : `<span>${escapeHtml(t("aiResult.noItems"))}</span>`}</div></article>
       </section>
       <section class="ai-transcript">
         <header><h3>${escapeHtml(t("aiResult.transcript"))}</h3><span>${transcript.length}</span></header>
         ${transcript.length ? transcript.map(segment => `
           <article class="ai-transcript__row">
             <div class="ai-transcript__meta">
-              <strong>${escapeHtml(segment.participant_id || t("aiResult.participant"))}</strong>
-              <span class="mono-cell">${Number(segment.start_ms || 0)}-${Number(segment.end_ms || 0)} ms</span>
+              <strong>${escapeHtml(aiParticipantLabel(segment.participant_id))}</strong>
+              <span class="mono-cell">${Number(segment.start_ms || 0)}-${Number(segment.end_ms || 0)} ${escapeHtml(t("aiResult.timeUnit"))}</span>
               <span class="status-pill ${segment.final_segment ? "ok" : ""}">${escapeHtml(t(segment.final_segment ? "aiResult.final" : "aiResult.partial"))}</span>
             </div>
             <p>${escapeHtml(segment.text || "")}</p>

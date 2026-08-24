@@ -125,6 +125,10 @@
             <span class="nav-item__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 9h8"/><path d="M8 13h5"/></svg></span>
             <span data-i18n="tabs.extensions"></span>
           </button>
+          <button class="nav-item" id="navDomainAiAgentsButton" type="button">
+            <span class="nav-item__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16H6z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span>
+            <span data-i18n="tabs.aiAgents"></span>
+          </button>
           <button class="nav-item" id="navDomainTrunksButton" type="button">
             <span class="nav-item__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4v5H5z"/><path d="M15 15h4v5h-4z"/><path d="M9 6h4a4 4 0 0 1 4 4v5"/></svg></span>
             <span data-i18n="tabs.trunks"></span>
@@ -832,6 +836,34 @@
               <div class="pagination" id="extensionPagination"></div>
             </div>
 
+            <div class="subview" id="aiAgentsSubview">
+              <div class="subview-toolbar">
+                <div>
+                  <div class="subview-toolbar__title" data-i18n="aiAgents.title"></div>
+                  <div class="subview-toolbar__hint" data-i18n="aiAgents.hint"></div>
+                </div>
+                <button class="button button--primary" id="openAiAgentCreateButton" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                  <span data-i18n="aiAgents.add"></span>
+                </button>
+              </div>
+              <div class="table-shell">
+                <table class="data-table">
+                  <thead><tr>
+                    <th data-i18n="aiAgents.columns.number"></th>
+                    <th data-i18n="aiAgents.columns.name"></th>
+                    <th data-i18n="aiAgents.columns.agentId"></th>
+                    <th data-i18n="aiAgents.columns.profile"></th>
+                    <th data-i18n="aiAgents.columns.status"></th>
+                    <th class="actions-column"></th>
+                  </tr></thead>
+                  <tbody id="aiAgentTableBody"></tbody>
+                </table>
+                <div class="empty-state" id="aiAgentEmptyState" data-i18n="aiAgents.empty"></div>
+              </div>
+              <div class="pagination" id="aiAgentPagination"></div>
+            </div>
+
             <div class="subview" id="trunksSubview">
               <div class="resource-switch" role="tablist" aria-label="trunk type">
                 <button class="resource-switch__button active" id="showPeerTrunksButton" type="button" role="tab" aria-selected="true">
@@ -1231,6 +1263,16 @@
                 </fieldset>
                 <label class="checkbox-field"><input id="inboundRouteEnabledInput" type="checkbox" checked><span data-i18n="routeForm.enabled"></span></label>
                 <div class="editor-form__actions"><button class="button button--primary" type="submit"><span data-i18n="inboundRouteForm.save"></span></button><button class="button button--ghost" id="resetInboundRouteButton" type="button"><span data-i18n="routeForm.reset"></span></button></div>
+              </form>
+
+              <form class="editor-form" id="aiAgentForm">
+                <label class="field"><span data-i18n="aiAgentForm.agentId"></span><input id="aiAgentIdInput" type="text" autocomplete="off" required></label>
+                <label class="field"><span data-i18n="aiAgentForm.name"></span><input id="aiAgentNameInput" type="text" autocomplete="off" required></label>
+                <label class="field"><span data-i18n="aiAgentForm.serviceNumber"></span><input id="aiAgentServiceNumberInput" type="text" inputmode="numeric" autocomplete="off" required></label>
+                <label class="field"><span data-i18n="aiAgentForm.profile"></span><select id="aiAgentProfileInput" required></select></label>
+                <label class="field"><span data-i18n="aiAgentForm.fallbackTarget"></span><input id="aiAgentFallbackTargetInput" type="text" autocomplete="off"></label>
+                <label class="checkbox-field"><input id="aiAgentEnabledInput" type="checkbox" checked><span data-i18n="aiAgentForm.enabled"></span></label>
+                <div class="editor-form__actions"><button class="button button--primary" type="submit"><span data-i18n="aiAgentForm.save"></span></button><button class="button button--ghost" id="resetAiAgentButton" type="button"><span data-i18n="aiAgentForm.reset"></span></button></div>
               </form>
 
               <div class="form-message" id="formMessage"></div>
