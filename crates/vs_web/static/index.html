@@ -1271,6 +1271,9 @@
                 <label class="field"><span data-i18n="aiAgentForm.serviceNumber"></span><input id="aiAgentServiceNumberInput" type="text" inputmode="numeric" autocomplete="off" required></label>
                 <label class="field"><span data-i18n="aiAgentForm.profile"></span><select id="aiAgentProfileInput" required></select></label>
                 <label class="field"><span data-i18n="aiAgentForm.fallbackTarget"></span><input id="aiAgentFallbackTargetInput" type="text" autocomplete="off"></label>
+                <label class="field"><span data-i18n="aiAgentForm.welcomeText"></span><textarea id="aiAgentWelcomeTextInput" rows="3" maxlength="1000"></textarea></label>
+                <label class="field"><span data-i18n="aiAgentForm.welcomeAudio"></span><input id="aiAgentWelcomeAudioInput" type="file" accept=".wav,audio/wav"><small data-i18n="aiAgentForm.welcomeAudioHint"></small></label>
+                <label class="checkbox-field"><input id="aiAgentWelcomeAudioClearInput" type="checkbox"><span data-i18n="aiAgentForm.welcomeAudioClear"></span></label>
                 <label class="checkbox-field"><input id="aiAgentEnabledInput" type="checkbox" checked><span data-i18n="aiAgentForm.enabled"></span></label>
                 <div class="editor-form__actions"><button class="button button--primary" type="submit"><span data-i18n="aiAgentForm.save"></span></button><button class="button button--ghost" id="resetAiAgentButton" type="button"><span data-i18n="aiAgentForm.reset"></span></button></div>
               </form>

@@ -2192,6 +2192,10 @@ struct AiAgentPayload {
     enabled: bool,
     #[serde(default)]
     fallback_target: Option<String>,
+    #[serde(default)]
+    welcome_text: Option<String>,
+    #[serde(default)]
+    welcome_audio_base64: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -2204,6 +2208,10 @@ struct AiAgentUpdatePayload {
     enabled: bool,
     #[serde(default)]
     fallback_target: Option<String>,
+    #[serde(default)]
+    welcome_text: Option<String>,
+    #[serde(default)]
+    welcome_audio_base64: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -2344,7 +2352,7 @@ fn inbound_route_fields(payload: InboundRouteUpdatePayload) -> BTreeMap<String, 
 }
 
 fn ai_agent_fields(payload: AiAgentUpdatePayload) -> BTreeMap<String, String> {
-    fields([
+    let mut values = fields([
         ("agent_id", payload.agent_id),
         ("name", payload.name),
         ("service_number", payload.service_number),
@@ -2354,7 +2362,16 @@ fn ai_agent_fields(payload: AiAgentUpdatePayload) -> BTreeMap<String, String> {
             "fallback_target",
             payload.fallback_target.unwrap_or_default(),
         ),
-    ])
+    ]);
+    values.insert(
+        "welcome_text".to_string(),
+        payload.welcome_text.unwrap_or_default(),
+    );
+    values.insert(
+        "welcome_audio_base64".to_string(),
+        payload.welcome_audio_base64.unwrap_or_default(),
+    );
+    values
 }
 
 impl From<AiAgentPayload> for AiAgentUpdatePayload {
@@ -2366,6 +2383,8 @@ impl From<AiAgentPayload> for AiAgentUpdatePayload {
             profile_id: payload.profile_id,
             enabled: payload.enabled,
             fallback_target: payload.fallback_target,
+            welcome_text: payload.welcome_text,
+            welcome_audio_base64: payload.welcome_audio_base64,
         }
     }
 }

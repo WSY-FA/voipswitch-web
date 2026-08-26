@@ -1397,7 +1397,8 @@ svg {
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   width: 100%;
   min-height: 40px;
   border: 1px solid var(--line);
@@ -1406,6 +1407,8 @@ svg {
   background: #ffffff;
   color: var(--ink);
 }
+
+.field textarea { resize: vertical; }
 
 .field-grid {
   display: grid;

@@ -44,6 +44,7 @@ const state = {
   routes: [],
   inboundRoutes: [],
   aiAgents: [],
+  aiAgentWelcomeAudioBase64: "",
   aiProfiles: [],
   trunkOptions: [],
   regTrunkOptions: [],
@@ -277,6 +278,9 @@ const els = {
   aiAgentServiceNumberInput: document.getElementById("aiAgentServiceNumberInput"),
   aiAgentProfileInput: document.getElementById("aiAgentProfileInput"),
   aiAgentFallbackTargetInput: document.getElementById("aiAgentFallbackTargetInput"),
+  aiAgentWelcomeTextInput: document.getElementById("aiAgentWelcomeTextInput"),
+  aiAgentWelcomeAudioInput: document.getElementById("aiAgentWelcomeAudioInput"),
+  aiAgentWelcomeAudioClearInput: document.getElementById("aiAgentWelcomeAudioClearInput"),
   aiAgentEnabledInput: document.getElementById("aiAgentEnabledInput"),
   openAiAgentCreateButton: document.getElementById("openAiAgentCreateButton"),
   resetAiAgentButton: document.getElementById("resetAiAgentButton"),
@@ -1267,6 +1271,10 @@ function resetAiAgentForm() {
   els.aiAgentEnabledInput.checked = true;
   els.aiAgentIdInput.disabled = false;
   els.aiAgentServiceNumberInput.disabled = false;
+  els.aiAgentWelcomeTextInput.value = "";
+  els.aiAgentWelcomeAudioInput.value = "";
+  els.aiAgentWelcomeAudioClearInput.checked = false;
+  state.aiAgentWelcomeAudioBase64 = "";
   renderAiAgentProfileSelect();
 }
 
@@ -1343,6 +1351,10 @@ function openEditor(tab, item = null) {
     els.aiAgentNameInput.value = item?.name || "";
     els.aiAgentServiceNumberInput.value = item?.service_number || "";
     els.aiAgentFallbackTargetInput.value = item?.fallback_target || "";
+    els.aiAgentWelcomeTextInput.value = item?.welcome_text || "";
+    els.aiAgentWelcomeAudioClearInput.checked = false;
+    els.aiAgentWelcomeAudioInput.value = "";
+    state.aiAgentWelcomeAudioBase64 = item?.welcome_audio || "";
     renderAiAgentProfileSelect();
     els.aiAgentProfileInput.value = item?.profile_id || "";
     els.aiAgentEnabledInput.checked = item?.enabled ?? true;
@@ -1935,17 +1947,37 @@ async function saveAiAgent(event) {
   event.preventDefault();
   if (!state.selectedDomainId) return;
   try {
+    const file = els.aiAgentWelcomeAudioInput.files?.[0];
+    if (file && (file.size > 768 * 1024 || !file.name.toLowerCase().endsWith(".wav"))) {
+      throw new Error(t("aiAgentForm.welcomeAudioInvalid"));
+    }
+    let audioBase64 = state.aiAgentWelcomeAudioBase64 || "";
+    if (file) audioBase64 = (await fileToDataUrl(file)).split(",", 2)[1] || "";
+    const welcomeText = els.aiAgentWelcomeTextInput.value.trim();
+    if (welcomeText) audioBase64 = "";
+    if (els.aiAgentWelcomeAudioClearInput.checked) audioBase64 = "";
     const payload = {
       agent_id: els.aiAgentIdInput.value.trim(),
       name: els.aiAgentNameInput.value.trim(),
       service_number: els.aiAgentServiceNumberInput.value.trim(),
       profile_id: els.aiAgentProfileInput.value,
       fallback_target: els.aiAgentFallbackTargetInput.value.trim() || null,
-      enabled: els.aiAgentEnabledInput.checked
+      enabled: els.aiAgentEnabledInput.checked,
+      welcome_text: welcomeText,
+      welcome_audio_base64: audioBase64
     };
     await api(state.editingAiAgentId === null ? "/api/ai-agents" : `/api/ai-agents/${encodeURIComponent(state.selectedDomainId)}/${state.editingAiAgentId}`, { method: state.editingAiAgentId === null ? "POST" : "PATCH", body: JSON.stringify(state.editingAiAgentId === null ? { domain_id: state.selectedDomainId, ...payload } : payload) });
     resetAiAgentForm(); await openDomainDetail(state.selectedDomainId, "aiAgents"); closeEditor(); setFormMessage(t("message.aiAgentSaved"), "ok");
   } catch (error) { setFormMessage(error.message, "error"); }
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error(t("aiAgentForm.welcomeAudioInvalid")));
+    reader.readAsDataURL(file);
+  });
 }
 
 async function deleteRegTrunk(id) { await deleteDomainResource("/api/reg-trunks", id, "message.regTrunkDeleted"); }
