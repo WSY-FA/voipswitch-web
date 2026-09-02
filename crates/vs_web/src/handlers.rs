@@ -2195,6 +2195,8 @@ struct AiAgentPayload {
     #[serde(default)]
     welcome_text: Option<String>,
     #[serde(default)]
+    welcome_language: Option<String>,
+    #[serde(default)]
     welcome_audio_base64: Option<String>,
 }
 
@@ -2210,6 +2212,8 @@ struct AiAgentUpdatePayload {
     fallback_target: Option<String>,
     #[serde(default)]
     welcome_text: Option<String>,
+    #[serde(default)]
+    welcome_language: Option<String>,
     #[serde(default)]
     welcome_audio_base64: Option<String>,
 }
@@ -2368,6 +2372,12 @@ fn ai_agent_fields(payload: AiAgentUpdatePayload) -> BTreeMap<String, String> {
         payload.welcome_text.unwrap_or_default(),
     );
     values.insert(
+        "welcome_language".to_string(),
+        payload
+            .welcome_language
+            .unwrap_or_else(|| "zh-CN".to_string()),
+    );
+    values.insert(
         "welcome_audio_base64".to_string(),
         payload.welcome_audio_base64.unwrap_or_default(),
     );
@@ -2384,6 +2394,7 @@ impl From<AiAgentPayload> for AiAgentUpdatePayload {
             enabled: payload.enabled,
             fallback_target: payload.fallback_target,
             welcome_text: payload.welcome_text,
+            welcome_language: payload.welcome_language,
             welcome_audio_base64: payload.welcome_audio_base64,
         }
     }

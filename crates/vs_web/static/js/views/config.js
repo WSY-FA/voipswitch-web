@@ -277,6 +277,7 @@ const els = {
   aiAgentNameInput: document.getElementById("aiAgentNameInput"),
   aiAgentServiceNumberInput: document.getElementById("aiAgentServiceNumberInput"),
   aiAgentProfileInput: document.getElementById("aiAgentProfileInput"),
+  aiAgentWelcomeLanguageInput: document.getElementById("aiAgentWelcomeLanguageInput"),
   aiAgentFallbackTargetInput: document.getElementById("aiAgentFallbackTargetInput"),
   aiAgentWelcomeTextInput: document.getElementById("aiAgentWelcomeTextInput"),
   aiAgentWelcomeAudioInput: document.getElementById("aiAgentWelcomeAudioInput"),
@@ -1272,6 +1273,7 @@ function resetAiAgentForm() {
   els.aiAgentIdInput.disabled = false;
   els.aiAgentServiceNumberInput.disabled = false;
   els.aiAgentWelcomeTextInput.value = "";
+  els.aiAgentWelcomeLanguageInput.value = "zh-CN";
   els.aiAgentWelcomeAudioInput.value = "";
   els.aiAgentWelcomeAudioClearInput.checked = false;
   state.aiAgentWelcomeAudioBase64 = "";
@@ -1352,6 +1354,7 @@ function openEditor(tab, item = null) {
     els.aiAgentServiceNumberInput.value = item?.service_number || "";
     els.aiAgentFallbackTargetInput.value = item?.fallback_target || "";
     els.aiAgentWelcomeTextInput.value = item?.welcome_text || "";
+    els.aiAgentWelcomeLanguageInput.value = item?.welcome_language || "zh-CN";
     els.aiAgentWelcomeAudioClearInput.checked = false;
     els.aiAgentWelcomeAudioInput.value = "";
     state.aiAgentWelcomeAudioBase64 = item?.welcome_audio || "";
@@ -1961,6 +1964,7 @@ async function saveAiAgent(event) {
       name: els.aiAgentNameInput.value.trim(),
       service_number: els.aiAgentServiceNumberInput.value.trim(),
       profile_id: els.aiAgentProfileInput.value,
+      welcome_language: els.aiAgentWelcomeLanguageInput.value,
       fallback_target: els.aiAgentFallbackTargetInput.value.trim() || null,
       enabled: els.aiAgentEnabledInput.checked,
       welcome_text: welcomeText,

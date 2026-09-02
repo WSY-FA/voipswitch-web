@@ -21,6 +21,7 @@ export function createSystemView({ t, fetchStatus }) {
     callTrace: document.getElementById("systemCallTraceInput"),
     dataDir: document.getElementById("systemDataDirInput"),
     recordingDir: document.getElementById("systemRecordingDirInput"),
+    aiWelcomeAudioDir: document.getElementById("systemAiWelcomeAudioDirInput"),
     recordingRetention: document.getElementById("systemRecordingRetentionInput"),
     recordingMaxSize: document.getElementById("systemRecordingMaxSizeInput"),
     cdrSpoolWarning: document.getElementById("systemCdrSpoolWarningInput"),
@@ -108,6 +109,7 @@ export function createSystemView({ t, fetchStatus }) {
     els.recordingDir.value = String(
       settings.recording_dir || lastStatus.recording_dir || ""
     );
+    els.aiWelcomeAudioDir.value = String(settings.ai_welcome_audio_dir || "");
     els.recordingRetention.value = Number(settings.recording_retention_days || 30);
     els.recordingMaxSize.value = Number(settings.recording_max_size_gb || 20);
     els.cdrSpoolWarning.value = Number(settings.cdr_spool_warning_mb || 512);
@@ -137,6 +139,7 @@ export function createSystemView({ t, fetchStatus }) {
           log_level: els.logLevel.value,
           call_trace_enabled: els.callTrace.checked,
           recording_dir: els.recordingDir.value.trim(),
+          ai_welcome_audio_dir: els.aiWelcomeAudioDir.value.trim(),
           recording_retention_days: Number(els.recordingRetention.value),
           recording_max_size_gb: Number(els.recordingMaxSize.value),
           cdr_spool_warning_mb: cdrSpoolWarning,

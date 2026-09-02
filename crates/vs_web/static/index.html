@@ -627,6 +627,16 @@
 
           <div class="system-setting-row">
             <div class="system-setting-row__label">
+              <strong data-i18n="systemSettings.aiWelcomeAudioDir"></strong>
+              <span data-i18n="systemSettings.aiWelcomeAudioDirHint"></span>
+            </div>
+            <div class="system-setting-row__control">
+              <input id="systemAiWelcomeAudioDirInput" type="text" required>
+            </div>
+          </div>
+
+          <div class="system-setting-row">
+            <div class="system-setting-row__label">
               <strong data-i18n="systemSettings.recordingRetention"></strong>
               <span data-i18n="systemSettings.recordingRetentionHint"></span>
             </div>
@@ -1270,6 +1280,7 @@
                 <label class="field"><span data-i18n="aiAgentForm.name"></span><input id="aiAgentNameInput" type="text" autocomplete="off" required></label>
                 <label class="field"><span data-i18n="aiAgentForm.serviceNumber"></span><input id="aiAgentServiceNumberInput" type="text" inputmode="numeric" autocomplete="off" required></label>
                 <label class="field"><span data-i18n="aiAgentForm.profile"></span><select id="aiAgentProfileInput" required></select></label>
+                <label class="field"><span data-i18n="aiAgentForm.welcomeLanguage"></span><select id="aiAgentWelcomeLanguageInput"><option value="zh-CN" data-i18n="languages.zhCN"></option><option value="en-US" data-i18n="languages.enUS"></option></select></label>
                 <label class="field"><span data-i18n="aiAgentForm.fallbackTarget"></span><input id="aiAgentFallbackTargetInput" type="text" autocomplete="off"></label>
                 <label class="field"><span data-i18n="aiAgentForm.welcomeText"></span><textarea id="aiAgentWelcomeTextInput" rows="3" maxlength="1000"></textarea></label>
                 <label class="field"><span data-i18n="aiAgentForm.welcomeAudio"></span><input id="aiAgentWelcomeAudioInput" type="file" accept=".wav,audio/wav"><small data-i18n="aiAgentForm.welcomeAudioHint"></small></label>
