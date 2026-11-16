@@ -2888,6 +2888,11 @@ svg {
   transform: rotate(180deg);
 }
 
+.trace-flow-arrow--unknown::before,
+.trace-flow-arrow--unknown::after {
+  display: none;
+}
+
 .trace-flow-arrow span {
   position: relative;
   z-index: 1;

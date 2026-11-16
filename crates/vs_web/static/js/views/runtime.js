@@ -3,14 +3,15 @@ import { escapeHtml, formatBytes, formatDateTime, formatDuration } from "../core
 
 export function traceLeg(message) {
   const sessionId = String(message.session_id || "").toLowerCase();
-  if (sessionId.includes("-callee") || sessionId.includes("callee")) return "callee";
-  if (sessionId.includes("-caller") || sessionId.includes("caller")) return "caller";
+  if (/(?:^|-)callee(?:-attempt-[1-9]\d*)?$/.test(sessionId)) return "callee";
+  if (/(?:^|-)caller$/.test(sessionId)) return "caller";
   return "unknown";
 }
 
 export function tracePeerAddress(messages, leg) {
   for (const message of messages) {
-    if (traceLeg(message) !== leg) continue;
+    if (!["caller", "callee"].includes(leg) || traceLeg(message) !== leg) continue;
+    if (!["rx", "tx"].includes(message.direction)) continue;
     const address = message.direction === "rx"
       ? message.source_addr
       : message.destination_addr;
@@ -26,7 +27,8 @@ function traceLanePosition(leg) {
 }
 
 export function traceArrow(message) {
-  const leg = traceLeg(message) === "unknown" ? "caller" : traceLeg(message);
+  const leg = traceLeg(message);
+  if (leg === "unknown" || !["rx", "tx"].includes(message.direction)) return null;
   const endpoint = traceLanePosition(leg);
   const pbx = traceLanePosition("pbx");
   const source = message.direction === "rx" ? endpoint : pbx;
@@ -403,10 +405,10 @@ export function createRuntimeViews({ t }) {
           </div>
           <div class="trace-flow-row__diagram">
             <button
-              class="trace-flow-arrow ${arrow.reverse ? "trace-flow-arrow--reverse" : ""} ${index === 0 ? "is-selected" : ""}"
+              class="trace-flow-arrow ${!arrow ? "trace-flow-arrow--unknown" : arrow.reverse ? "trace-flow-arrow--reverse" : ""} ${index === 0 ? "is-selected" : ""}"
               type="button"
               data-trace-index="${index}"
-              style="left:${arrow.left}%;width:${arrow.width}%"
+              style="left:${arrow?.left ?? 16.6667}%;width:${arrow?.width ?? 66.6666}%"
               title="${escapeHtml(message.start_line || "-")}"
             >
               <span>${escapeHtml(message.start_line || "-")}</span>
@@ -422,7 +424,7 @@ export function createRuntimeViews({ t }) {
       });
       els.tracePacket.textContent = message?.packet || "";
       els.tracePacketMeta.textContent = message
-        ? `${String(message.direction || "").toUpperCase()} · leg ${message.adapter_call_leg_id || "-"} · ${formatDateTime(message.observed_at_ms)}`
+        ? `${String(message.direction || "").toUpperCase()} · session ${message.session_id || "-"} · leg ${message.adapter_call_leg_id || "-"} · ${formatDateTime(message.observed_at_ms)}`
         : "";
     };
     els.traceRows.querySelectorAll("[data-trace-index]").forEach(row => {
